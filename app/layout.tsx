@@ -1,21 +1,19 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Header from "./header";
-
+import './globals.css'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Create Next App",
-};
+  title: 'Annotation Tool',
+  description: 'Simple Tool for Text Annotation',
+}
 
-export default function RootLayout({
+export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body className="overview_site_container">
-        <Header title="OVERVIEW" show_menu={true} />
+      <body>
         {children}
       </body>
     </html>
