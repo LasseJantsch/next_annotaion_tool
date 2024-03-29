@@ -10,7 +10,7 @@ const TableEntry = ({id,status,count}:{id: string, status: string, count: number
     return(
         <div className="table_entry_container" key={id}>
             <div className="table_entry_content">
-                <div className="entry_id entry_label">{id}</div>
+                <div className="entry_id entry_label">{id.substring(id.length-6)}</div>
                 <div className="entry_status entry_label">
                     {status === 'annotated' && <div className="entry_status_icon_container" style={{backgroundColor:'green', color:'white'}}><CheckIcon className="entry_status_icon"/></div>}
                     {status === 'skipped' && <div className="entry_status_icon_container" style={{backgroundColor:'yellow'}}><KeyboardDoubleArrowRightIcon className="entry_status_icon"/></div>}

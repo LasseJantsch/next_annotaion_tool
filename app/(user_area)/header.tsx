@@ -1,11 +1,21 @@
 'use client'
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-const Header = ({title, show_menu}:{title: string, show_menu: boolean}) => {
+const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false)
+    const pathname = usePathname()
+    
+    if (pathname.match(/annotation/)){
+        var title = 'ANNOTATION'
+        var showMenu = false
+    }else { 
+        var title = 'OVERVIEW'
+        var showMenu = true
+    }
 
     const handleMenuClick = () => {
         setMenuOpen(!menuOpen)
@@ -17,7 +27,7 @@ const Header = ({title, show_menu}:{title: string, show_menu: boolean}) => {
     return(
         <div className="header">
             <div className="menu_container">
-                {show_menu?
+                {showMenu?
                 <button className="menu_button" onClick={handleMenuClick}>
                     <MenuIcon className="menu_icon"/>
                 </button>:

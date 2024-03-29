@@ -12,8 +12,6 @@ export const getSelectedIds = () => {
         const end_id = Number((selection.focusNode.parentNode as HTMLElement).id.split('_')[1])
         const end_filler = (selection.focusNode.parentNode as HTMLElement).id.includes('filler')
 
-        console.log(start_filler, end_filler)
-
         // init ids array
         var ids: number[] = []
         start_id < end_id ? ids.push(...range(start_id, end_id, start_filler)): ids.push(...range(end_id, start_id, end_filler))
@@ -23,6 +21,5 @@ export const getSelectedIds = () => {
 
 export const range = (start: number , end: number, filler: boolean) => {
     const start_ = filler? start + 1: start
-    console.log(start_)
     return Array.from({length: end +1 - start_}, (v, k) => k +  start_)
 }

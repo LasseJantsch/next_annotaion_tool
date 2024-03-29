@@ -1,5 +1,5 @@
 'use client'
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import BackspaceIcon from '@mui/icons-material/Backspace';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -12,118 +12,160 @@ import { getSelectedIds } from "./helper";
 import AnnotationTextElement from "./annotationTextElement";
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { type User } from '@supabase/supabase-js'
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from 'next/navigation'
 
-const AnnotationPage = ({params}: any) => {
-    const title = 'Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks'
-    const authors = ['Nils Reimers', 'Iryna Gurevych']
-    const pub_year = 2019
-    const abstract = `BERT (Devlin et al., 2018) and RoBERTa (Liu et al., 2019) has set a new state-of-the-art performance on sentence-pair regression tasks like semantic textual similarity (STS). However, it requires that both sentences are fed into the network, which causes a massive computational overhead: Finding the most similar pair in a collection of 10,000 sentences requires about 50 million inference computations (~65 hours) with BERT. The construction of BERT makes it unsuitable for semantic similarity search as well as for unsupervised tasks like clustering.
-    In this publication, we present Sentence-BERT (SBERT), a modification of the pretrained BERT network that use siamese and triplet network structures to derive semantically meaningful sentence embeddings that can be compared using cosine-similarity. This reduces the effort for finding the most similar pair from 65 hours with BERT / RoBERTa to about 5 seconds with SBERT, while maintaining the accuracy from BERT.
-    We evaluate SBERT and SRoBERTa on common STS tasks and transfer learning tasks, where it outperforms other state-of-the-art sentence embeddings methods.`
 
-    const [id, setId] = useState<string>(params.id)
-    const [ann, setAnn] = useState({
-        "id": "ID60000",
-        "annotator": "ID90000",
-        "ref_id": "ID500000",
-        "ref_loc": 6,
-        "par_id": "ID100000",
-        "status": "outstanding",
-        "annotation_loc": []
-    })
-    const [next, setNext] = useState()
-    const [prev, setPrev] = useState()
-    const [par, setPar] = useState<paragraph>({
-        "doc_id": "ID000001",
-        "data": [
-            "Recurrent",
-            "neural",
-            "networks,",
-            "long",
-            "short-term",
-            "memory",
-            "[TREF]",
-            "and",
-            "gated",
-            "recurrent",
-            "[REF]",
-            "neural",
-            "networks",
-            "in",
-            "particular,",
-            "have",
-            "been",
-            "firmly",
-            "established",
-            "as",
-            "state",
-            "of",
-            "the",
-            "art",
-            "approaches",
-            "in",
-            "sequence",
-            "modeling",
-            "and",
-            "transduction",
-            "problems",
-            "such",
-            "as",
-            "language",
-            "modeling",
-            "and",
-            "machine",
-            "translation",
-            "[GREF].",
-            "Numerous",
-            "efforts",
-            "have",
-            "since",
-            "continued",
-            "to",
-            "push",
-            "the",
-            "boundaries",
-            "of",
-            "recurrent",
-            "language",
-            "models",
-            "and",
-            "encoder-decoder",
-            "architectures",
-            "[GREF]."
-        ],
-        "refs": [
-            "ID500000",
-            "ID500001",
-            "ID500002",
-            "ID500003"
-        ]
-    })
+const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
+    const supabase = createClient()
+    const id = params.id
+    const router = useRouter()
+    const [annotationText, setAnnotationText] = useState<string[]>()
+    const [citedTitle, setCitedTitle] = useState<string>()
+    const [citedPubYear, setCitedPubYear] = useState<number>()
+    const [citedAuthors, setCitedAuthors] = useState<string[]>()
+    const [citedAbstract, setCitedAbstract] = useState<string>()
+    const [citedDOI, setCitedDOI] = useState<string>()
+    const [loading, setLoading] = useState<boolean>(true)
+    const [prevAnnotation, setPrevAnnotation] = useState<Array<number>>([])
+    const [uploading, setUploading] = useState<boolean>(false)
     const [unsafedChanges, setUnsafedChanges] = useState(false)
+    const [nextAnnotationElement, setNextAnnotationElement] = useState<string>()
     const [toolStatus, setToolStatus] = useState('mark_tool')
-    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [showInfoCard, setShowInfoCard] = useState<boolean>(false)
     const [annotation, setAnnotation] = useState<Array<number>>([])
 
-    type paragraph = {
-        doc_id: string;
-        data: Array<string>;
-        refs: string[]
-    }
+    console.log(unsafedChanges)
+    const getAnnotation = useCallback(async () => {
+        try {
+          setLoading(true)
+          const { data, error, status} = await supabase
+            .from('annotations')
+            .select(`annotation_location, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
+            .eq('id', id)
+            .single()
+    
+          if (error && status !== 406) {
+            console.log(error)
+            throw error
+          }
+    
+          if (data) {
+            const quotes : any = data.quotes
+            setAnnotationText(setTargetRef(quotes.paragraphs.text, quotes.ref_loc))
+            const document : any = quotes.paragraphs.documents
+            setCitedAuthors(document.authors.map((auth: any) => auth.first_name + ' ' + auth.last_name))
+            setCitedTitle(document.title)
+            setCitedPubYear(document.pub_year)
+            setCitedAbstract(document.abstract)
+            setCitedDOI(document.doi)
+            if (data.annotation_location) {
+                setPrevAnnotation(data.annotation_location)
+                setAnnotation(data.annotation_location)
+            }
+          }
+        } catch (error) {
+          alert('Error loading Annotation data!')
+        } finally {
+          setLoading(false)
+        }
+      }, [id, supabase])
+
+      const getAnnotations = useCallback(async () => {
+        try {
+          setLoading(true)
+    
+          const { data, error, status} = await supabase
+            .from('annotations')
+            .select(`id, status`)
+            .eq('user_id', user?.id)
+            .eq('status', 'outstanding')
+            .neq('id', id)
+            .limit(1)
+            .single()
+    
+          if (error && status !== 406) {
+            console.log(error)
+            throw error
+          }
+    
+          if (data) {
+            setNextAnnotationElement(data.id)
+          }
+        } catch (error) {
+          alert('Error loading outstanding Annotations data!')
+        } finally {
+          setLoading(false)
+        }
+      }, [user, supabase])
+
+      const updateAnnotation = async (status: string) => {
+        try {
+            setUploading(true)
+            if (status === 'annotated') {
+                if (annotation.length === 0){
+                    throw new Error('There is nothing annotated')
+                }
+                const { error } = await supabase
+                        .from('annotations')
+                        .update({status: status, annotation_location: annotation})
+                        .eq('id', id)
+                if(error){throw error}
+            } else if (status === 'skipped') {
+                const { error } = await supabase
+                .from('annotations')
+                .update({status: status})
+                .eq('id', id)
+                if(error){throw error}
+            } else {
+               throw new Error('Something went wrong')
+            }
+
+        } catch (error) {
+            alert('Error uploading Annotations!')
+        } finally {
+            setUploading(false)
+            if (status === 'annotated') {setUnsafedChanges(false)}
+        }
+      }
+
+      useEffect(() => {
+        getAnnotation()
+      }, [id, getAnnotation])
+
+      useEffect(() => {
+        getAnnotations()
+      }, [id, user, getAnnotations])
+
+      const setTargetRef = (text:string, loc:number) => {
+        const res: string[] = text.split(';')
+        if(res[loc].includes('REF]')) {
+            res[loc] = res[loc].slice(0, res[loc].indexOf('R')) + 'T' + res[loc].slice(res[loc].indexOf('R'))
+            return res
+        } else {
+            console.log(res[loc])
+            alert('Cant find target reference token')
+        }
+      }
+
+
+
 
     //set unmount event listener
-
-    // useEffect(() => {
-    //     const handleBeforeUnload = (event: ) => {
-    //         // Perform actions before the component unloads
-    //         event.preventDefault();
-    //         event.returnValue = '';
-    //       };
-    //       window.addEventListener('beforeunload', handleBeforeUnload);
-    //       return () => {
-    //         window.removeEventListener('beforeunload', handleBeforeUnload);
-    //       };    
-    //     }, []);
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (true) {
+                // Perform actions before the component unloads
+                event.preventDefault();
+                event.returnValue = '';
+            }
+          };
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+          };    
+        }, []);
 
     // add keyboard compatibility 
     useEffect(()=>{
@@ -157,30 +199,6 @@ const AnnotationPage = ({params}: any) => {
           }; 
     },[])
 
-    // get Ann when id is updated
-    useEffect(()=>{
-        // if (id) {
-        //     setAnn(getAnn(id))
-        //     setNext(getAnn(`ID${Number(id.slice(2))+1}`))
-        //     setPrev(getAnn(`ID${Number(id.slice(2))-1}`))
-        // }
-        console.log(id)
-    },[id])
-
-    //get par for id
-    useEffect(()=>{
-        // if(ann){
-        //     let fetched_par = getPar(ann['par_id'])
-        //     fetched_par['data'][ann['ref_loc']] = '[TREF]'
-        //     setPar(fetched_par)
-        // }
-        console.log(ann)
-    },[ann])
-
-    //manipulate ref tag
-    useEffect(()=>{
-        console.log(par)
-    },[par])
 
     useEffect(()=>{
         if (document.getElementById('erase_tool')) {
@@ -198,13 +216,19 @@ const AnnotationPage = ({params}: any) => {
     }, [toolStatus])
 
     useEffect(()=>{
-        par && Array.from(Array(par['data'].length).keys()).forEach(i => {
+        annotationText && Array.from(Array(annotationText.length).keys()).forEach(i => {
             if(annotation.includes(i)){
                 !(document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.add('marked')
             } else {
                 (document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.remove('marked') 
             }
         })
+        if (annotation === prevAnnotation) {
+            setUnsafedChanges(false)
+        } else {
+            setUnsafedChanges(true)
+            console.log(unsafedChanges)
+        }
     },[annotation])
 
 
@@ -235,22 +259,22 @@ const AnnotationPage = ({params}: any) => {
         }
         (window.getSelection() as Selection).removeAllRanges()
     }
-    const handlePrev = (event: React.MouseEvent<HTMLButtonElement>, id:string) => {
-        prev? redirect('/annotation/' + encodeURIComponent(`ID${Number(id.slice(2))-1}`)):
-        redirect('/')
+
+    const handleSkipp = () => {
+        updateAnnotation('skipped')
+        nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
+        router.push('/')
     }
-    const handleSkipp = (event: React.MouseEvent<HTMLButtonElement>, id:string) => {
-        next ? redirect('/annotation/' + encodeURIComponent(`ID${Number(id.slice(2))+1}`)):
-        redirect('/')
-    }
-    const handleSub = (event: React.MouseEvent<HTMLButtonElement>, id:string) => {
-        next ? redirect('/annotation/' + encodeURIComponent(`ID${Number(id.slice(2))+1}`)):
-        redirect('/')
+    const handleSub = () => {
+        updateAnnotation('annotated')
+        console.log(nextAnnotationElement)
+        nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
+        router.push('/')
     }
     return (
         <div className="annotation_site_container" onMouseUp={handleMark}>
             <div className="annotation_container">
-                {ann && par &&
+                {!loading &&
                 <div className="work_area_container">
                     <div className="tools_container">
                         <div className="mark_erase_container">
@@ -269,16 +293,17 @@ const AnnotationPage = ({params}: any) => {
                     </div>
                     <div className="annotation_text_container" >
                         <div className="annotation_text">
-                            {par['data'].map((s,i) => <AnnotationTextElement id={id} i={i} s={s} setShowInfoCard={setShowInfoCard}/>)}
+                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} setShowInfoCard={setShowInfoCard}/>)}
                         </div>
                     </div>
                     <div className="info_container">
                             {showInfoCard && 
                             <InfoCard 
-                                title ={title}
-                                authors={authors}
-                                pub_year={pub_year}
-                                abstract={abstract}
+                                title ={citedTitle as string}
+                                authors={citedAuthors as string[]}
+                                pub_year={citedPubYear as number}
+                                abstract={citedAbstract as string}
+                                doi = {citedDOI as string}
                                 setShowInfoCard={setShowInfoCard}
                             />}
                     </div>
@@ -291,17 +316,17 @@ const AnnotationPage = ({params}: any) => {
                         </button>
                     </div>
                     <div className="prev_skip_button_container">
-                        <button className="prev_button" onClick={e => handlePrev(e, id)}>
+                        <button className="prev_button" onClick={() => router.back()}>
                             <KeyboardDoubleArrowLeftTwoToneIcon className="prev_button_icon"/>
                             <span className="prev_button_label">Prev</span>
                         </button>
-                        <button className="skip_button" onClick={(e) => handleSkipp(e, id)}>
+                        <button className="skip_button" onClick={handleSkipp}>
                             <span className="skip_button_laber">Skip</span>
                             <KeyboardDoubleArrowRightTwoToneIcon className="skip_button_icon" />
                         </button>
                     </div>
                     <div className="submit_button_container">
-                        <button className="submit_button" onClick={(e) => handleSub(e, id)}>
+                        <button className="submit_button" onClick={handleSub}>
                             <CheckTwoToneIcon className="submit_button_icon"/>
                         </button>
                     </div>
@@ -311,4 +336,4 @@ const AnnotationPage = ({params}: any) => {
         </div>
     )
 }
-export default AnnotationPage
+export default AnnotationTool
