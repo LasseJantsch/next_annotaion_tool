@@ -8,10 +8,8 @@ import KeyboardDoubleArrowLeftTwoToneIcon from '@mui/icons-material/KeyboardDoub
 import KeyboardDoubleArrowRightTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowRightTwoTone';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import InfoCard from "./infoCard";
-import { getSelectedIds } from "./helper";
+import { getSelectedIds, setTargetRef } from "./helper";
 import AnnotationTextElement from "./annotationTextElement";
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation'
@@ -36,7 +34,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [showInfoCard, setShowInfoCard] = useState<boolean>(false)
     const [annotation, setAnnotation] = useState<Array<number>>([])
 
-    console.log(unsafedChanges)
+
+    // calls to Databse
+
+    // get annotation form id
     const getAnnotation = useCallback(async () => {
         try {
           setLoading(true)
@@ -72,6 +73,8 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }, [id, supabase])
 
+
+      // get next annotation to work on
       const getAnnotations = useCallback(async () => {
         try {
           setLoading(true)
@@ -100,6 +103,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }, [user, supabase])
 
+      //update annotation information
       const updateAnnotation = async (status: string) => {
         try {
             setUploading(true)
@@ -130,6 +134,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }
 
+      // call database functions
       useEffect(() => {
         getAnnotation()
       }, [id, getAnnotation])
@@ -138,16 +143,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         getAnnotations()
       }, [id, user, getAnnotations])
 
-      const setTargetRef = (text:string, loc:number) => {
-        const res: string[] = text.split(';')
-        if(res[loc].includes('REF]')) {
-            res[loc] = res[loc].slice(0, res[loc].indexOf('R')) + 'T' + res[loc].slice(res[loc].indexOf('R'))
-            return res
-        } else {
-            console.log(res[loc])
-            alert('Cant find target reference token')
-        }
-      }
+
 
 
 
@@ -200,6 +196,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     },[])
 
 
+    // update tools on toolStatus change
     useEffect(()=>{
         if (document.getElementById('erase_tool')) {
             switch (toolStatus) {
@@ -215,6 +212,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
     }, [toolStatus])
 
+    // update markings on annotation change
     useEffect(()=>{
         annotationText && Array.from(Array(annotationText.length).keys()).forEach(i => {
             if(annotation.includes(i)){
@@ -232,6 +230,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     },[annotation])
 
 
+    // Event Handle functions
     const handleToolChange = (event: React.MouseEvent<HTMLButtonElement>) => {
         setToolStatus((event.target as HTMLElement).id)
     }
@@ -267,10 +266,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     }
     const handleSub = () => {
         updateAnnotation('annotated')
-        console.log(nextAnnotationElement)
         nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
         router.push('/')
     }
+    
     return (
         <div className="annotation_site_container" onMouseUp={handleMark}>
             <div className="annotation_container">
