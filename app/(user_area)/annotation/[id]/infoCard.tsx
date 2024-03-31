@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{title:string, authors:string[], pub_year: number, abstract: string, doi:string, setShowInfoCard:React.Dispatch<React.SetStateAction<boolean>>}) => {
+
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        if (title && authors && pub_year && abstract && doi) {
+            setLoading(false)
+        }
+    }, [title, authors, pub_year, abstract, doi])
     
     return(
         <div id='info_card' className={"info_card active"}>
@@ -20,6 +28,8 @@ const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{ti
                     </button>
                 </div>
             </div>
+            {loading?
+            <div>loading</div>:
             <div className="info_content_container">
                 <div className="info_title_container">
                     <div className="info_tilte">{title}</div>
@@ -30,7 +40,7 @@ const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{ti
                 <div className="info_abstract_container">
                     <div className="info_abstract">{abstract}</div>
                 </div>
-            </div>
+            </div>}
         </div>
     )
 }

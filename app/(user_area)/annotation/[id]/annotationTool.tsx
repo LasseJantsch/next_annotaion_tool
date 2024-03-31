@@ -13,6 +13,8 @@ import AnnotationTextElement from "./annotationTextElement";
 import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation'
+import CommentSection from "./commentSection";
+import CommentIcon from '@mui/icons-material/Comment';
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -31,7 +33,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [unsafedChanges, setUnsafedChanges] = useState(false)
     const [nextAnnotationElement, setNextAnnotationElement] = useState<string>()
     const [toolStatus, setToolStatus] = useState('mark_tool')
-    const [showInfoCard, setShowInfoCard] = useState<boolean>(false)
+    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
+    const [commentContent, setCommentContent] = useState<string>('')
     const [annotation, setAnnotation] = useState<Array<number>>([])
 
 
@@ -43,7 +47,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`annotation_location, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
+            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
             .eq('id', id)
             .single()
     
@@ -64,6 +68,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             if (data.annotation_location) {
                 setPrevAnnotation(data.annotation_location)
                 setAnnotation(data.annotation_location)
+            }
+            if (data.comment) {
+                setCommentContent(data.comment)
+            } else {
             }
           }
         } catch (error) {
@@ -113,13 +121,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 }
                 const { error } = await supabase
                         .from('annotations')
-                        .update({status: status, annotation_location: annotation})
+                        .update({status: status, annotation_location: annotation, comment: commentContent})
                         .eq('id', id)
                 if(error){throw error}
             } else if (status === 'skipped') {
                 const { error } = await supabase
                 .from('annotations')
-                .update({status: status})
+                .update({status: status, comment: commentContent})
                 .eq('id', id)
                 if(error){throw error}
             } else {
@@ -166,6 +174,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     // add keyboard compatibility 
     useEffect(()=>{
         const handleKeyPress = (event:KeyboardEvent) => {
+            if ((document.activeElement as HTMLElement).id === 'comment_field') {
+                return
+            }
             (document.activeElement as HTMLElement).blur()
             switch (event.code){
                 case 'Digit1':
@@ -225,7 +236,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             setUnsafedChanges(false)
         } else {
             setUnsafedChanges(true)
-            console.log(unsafedChanges)
         }
     },[annotation])
 
@@ -269,9 +279,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
         router.push('/')
     }
-    
+
     return (
-        <div className="annotation_site_container" onMouseUp={handleMark}>
+        <div className="annotation_site_container" >
             <div className="annotation_container">
                 {!loading &&
                 <div className="work_area_container">
@@ -290,7 +300,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                             </button>
                         </div>
                     </div>
-                    <div className="annotation_text_container" >
+                    <div className="annotation_text_container" onMouseUp={handleMark}>
                         <div className="annotation_text">
                             {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} setShowInfoCard={setShowInfoCard}/>)}
                         </div>
@@ -305,6 +315,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                                 doi = {citedDOI as string}
                                 setShowInfoCard={setShowInfoCard}
                             />}
+                            {showCommentSection &&
+                            <CommentSection 
+                                commentContent = {commentContent}
+                                setCommentContent = {setCommentContent}
+                                setShowCommentSection={setShowCommentSection}
+                            />
+                            }
                     </div>
                 </div>
                 }
@@ -312,6 +329,11 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     <div className="help_button_container">
                         <button className="help_button" >
                             <QuestionMarkTwoToneIcon className="help_button_icon"/>
+                        </button>
+                    </div>
+                    <div className="help_button_container" onClick={()=>setShowCommentSection(prev => !prev)}>
+                        <button className="help_button" >
+                            <CommentIcon className="help_button_icon"/>
                         </button>
                     </div>
                     <div className="prev_skip_button_container">
