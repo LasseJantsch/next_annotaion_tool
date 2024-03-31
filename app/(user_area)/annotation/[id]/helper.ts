@@ -23,3 +23,15 @@ export const range = (start: number , end: number, filler: boolean) => {
     const start_ = filler? start + 1: start
     return Array.from({length: end +1 - start_}, (v, k) => k +  start_)
 }
+
+      
+export const setTargetRef = (text:string, loc:number) => {
+    const res: string[] = text.split(';')
+    if(res[loc].includes('REF]')) {
+        res[loc] = res[loc].slice(0, res[loc].indexOf('R')) + 'T' + res[loc].slice(res[loc].indexOf('R'))
+        return res
+    } else {
+        console.log(res[loc])
+        alert('Cant find target reference token')
+    }
+  }

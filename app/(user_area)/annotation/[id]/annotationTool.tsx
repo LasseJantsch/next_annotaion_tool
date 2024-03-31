@@ -8,13 +8,13 @@ import KeyboardDoubleArrowLeftTwoToneIcon from '@mui/icons-material/KeyboardDoub
 import KeyboardDoubleArrowRightTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowRightTwoTone';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import InfoCard from "./infoCard";
-import { getSelectedIds } from "./helper";
+import { getSelectedIds, setTargetRef } from "./helper";
 import AnnotationTextElement from "./annotationTextElement";
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation'
+import CommentSection from "./commentSection";
+import CommentIcon from '@mui/icons-material/Comment';
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -33,16 +33,21 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [unsafedChanges, setUnsafedChanges] = useState(false)
     const [nextAnnotationElement, setNextAnnotationElement] = useState<string>()
     const [toolStatus, setToolStatus] = useState('mark_tool')
-    const [showInfoCard, setShowInfoCard] = useState<boolean>(false)
+    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
+    const [commentContent, setCommentContent] = useState<string>('')
     const [annotation, setAnnotation] = useState<Array<number>>([])
 
-    console.log(unsafedChanges)
+
+    // calls to Databse
+
+    // get annotation form id
     const getAnnotation = useCallback(async () => {
         try {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`annotation_location, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
+            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
             .eq('id', id)
             .single()
     
@@ -64,6 +69,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 setPrevAnnotation(data.annotation_location)
                 setAnnotation(data.annotation_location)
             }
+            if (data.comment) {
+                setCommentContent(data.comment)
+            } else {
+            }
           }
         } catch (error) {
           alert('Error loading Annotation data!')
@@ -72,6 +81,8 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }, [id, supabase])
 
+
+      // get next annotation to work on
       const getAnnotations = useCallback(async () => {
         try {
           setLoading(true)
@@ -100,6 +111,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }, [user, supabase])
 
+      //update annotation information
       const updateAnnotation = async (status: string) => {
         try {
             setUploading(true)
@@ -109,13 +121,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 }
                 const { error } = await supabase
                         .from('annotations')
-                        .update({status: status, annotation_location: annotation})
+                        .update({status: status, annotation_location: annotation, comment: commentContent})
                         .eq('id', id)
                 if(error){throw error}
             } else if (status === 'skipped') {
                 const { error } = await supabase
                 .from('annotations')
-                .update({status: status})
+                .update({status: status, comment: commentContent})
                 .eq('id', id)
                 if(error){throw error}
             } else {
@@ -130,6 +142,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
       }
 
+      // call database functions
       useEffect(() => {
         getAnnotation()
       }, [id, getAnnotation])
@@ -138,16 +151,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         getAnnotations()
       }, [id, user, getAnnotations])
 
-      const setTargetRef = (text:string, loc:number) => {
-        const res: string[] = text.split(';')
-        if(res[loc].includes('REF]')) {
-            res[loc] = res[loc].slice(0, res[loc].indexOf('R')) + 'T' + res[loc].slice(res[loc].indexOf('R'))
-            return res
-        } else {
-            console.log(res[loc])
-            alert('Cant find target reference token')
-        }
-      }
+
 
 
 
@@ -170,6 +174,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     // add keyboard compatibility 
     useEffect(()=>{
         const handleKeyPress = (event:KeyboardEvent) => {
+            if ((document.activeElement as HTMLElement).id === 'comment_field') {
+                return
+            }
             (document.activeElement as HTMLElement).blur()
             switch (event.code){
                 case 'Digit1':
@@ -200,6 +207,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     },[])
 
 
+    // update tools on toolStatus change
     useEffect(()=>{
         if (document.getElementById('erase_tool')) {
             switch (toolStatus) {
@@ -215,6 +223,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
     }, [toolStatus])
 
+    // update markings on annotation change
     useEffect(()=>{
         annotationText && Array.from(Array(annotationText.length).keys()).forEach(i => {
             if(annotation.includes(i)){
@@ -227,11 +236,11 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             setUnsafedChanges(false)
         } else {
             setUnsafedChanges(true)
-            console.log(unsafedChanges)
         }
     },[annotation])
 
 
+    // Event Handle functions
     const handleToolChange = (event: React.MouseEvent<HTMLButtonElement>) => {
         setToolStatus((event.target as HTMLElement).id)
     }
@@ -267,12 +276,12 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     }
     const handleSub = () => {
         updateAnnotation('annotated')
-        console.log(nextAnnotationElement)
         nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
         router.push('/')
     }
+
     return (
-        <div className="annotation_site_container" onMouseUp={handleMark}>
+        <div className="annotation_site_container" >
             <div className="annotation_container">
                 {!loading &&
                 <div className="work_area_container">
@@ -291,7 +300,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                             </button>
                         </div>
                     </div>
-                    <div className="annotation_text_container" >
+                    <div className="annotation_text_container" onMouseUp={handleMark}>
                         <div className="annotation_text">
                             {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} setShowInfoCard={setShowInfoCard}/>)}
                         </div>
@@ -306,6 +315,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                                 doi = {citedDOI as string}
                                 setShowInfoCard={setShowInfoCard}
                             />}
+                            {showCommentSection &&
+                            <CommentSection 
+                                commentContent = {commentContent}
+                                setCommentContent = {setCommentContent}
+                                setShowCommentSection={setShowCommentSection}
+                            />
+                            }
                     </div>
                 </div>
                 }
@@ -313,6 +329,11 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     <div className="help_button_container">
                         <button className="help_button" >
                             <QuestionMarkTwoToneIcon className="help_button_icon"/>
+                        </button>
+                    </div>
+                    <div className="help_button_container" onClick={()=>setShowCommentSection(prev => !prev)}>
+                        <button className="help_button" >
+                            <CommentIcon className="help_button_icon"/>
                         </button>
                     </div>
                     <div className="prev_skip_button_container">
