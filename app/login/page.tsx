@@ -1,6 +1,16 @@
-import {login, signup} from './actions'
+import {login} from './actions'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function LoginPage() {
+export default async function LoginPage() {
+
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  user && redirect('/')
 
   return (
     <div className='login_page'>
@@ -14,7 +24,6 @@ export default function LoginPage() {
           <input id="password" name="password" type="password" required />
         </div>
         <button className='login_button' formAction={login}>Log in</button>
-        <button className='login_button' formAction={signup}>Sign up</button>
       </form>
     </div>
   )
