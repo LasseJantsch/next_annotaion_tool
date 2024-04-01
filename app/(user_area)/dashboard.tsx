@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import TableEntry from "./tableEntry";
 import { createClient } from '@/utils/supabase/client'
 import { type User } from '@supabase/supabase-js'
+import ErrorBanner from "./errorBanner";
 
 const Dashboard = ({ user }: { user: User | null }) => {
     const supabase = createClient()
@@ -15,6 +16,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
     const [total, setTotal] = useState<number>()
     const [annotaded, setAnnotaded] =useState(0)
     const [skipped, setSkipped] = useState(0)
+    const [error, setError] = useState<string>('')
 
     type annotationElement = {
       id: string,
@@ -45,7 +47,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
           setLastName(data.last_name)
         }
       } catch (error) {
-        alert('Error loading user data!')
+        setError('Error loading user data!')
       } finally {
         setProfileLoading(false)
       }
@@ -70,7 +72,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
           setTotal(data.length)
         }
       } catch (error) {
-        alert('Error loading ann data!')
+        setError('Error loading ann data!')
       } finally {
         setAnnLoading(false)
       }
@@ -104,7 +106,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
 
         }
       } catch (error) {
-        alert('Error loading Annotation Progress data!')
+        setError('Error loading Annotation Progress data!')
       } finally {
         setAnnLoading(false)
       }
@@ -127,6 +129,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
 
     return(
       <div id="overview_contatiner">
+        {error && <ErrorBanner message={error} setError={setError}/>}
           <div id="progress_container">
               <div id="progress_title">Progress</div>
               {total &&

@@ -1,19 +1,18 @@
+'use client'
 import {login} from './actions'
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+import { useState } from 'react'
+import ErrorBanner from '../(user_area)/errorBanner'
 
 export default async function LoginPage() {
+  const [error, setError] = useState<string>('')
 
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  user && redirect('/')
+  const handleFormSubmit = (event:FormData) => {
+    login(event)
+  }
 
   return (
     <div className='login_page'>
+      {error && <ErrorBanner message={error} setError={setError}/>}
       <form className='login_container'>
         <div className='login_input_container'>
           <label htmlFor="email">Email:</label>
@@ -23,7 +22,7 @@ export default async function LoginPage() {
           <label htmlFor="password">Password:</label>
           <input id="password" name="password" type="password" required />
         </div>
-        <button className='login_button' formAction={login}>Log in</button>
+        <button className='login_button' formAction={handleFormSubmit}>Log in</button>
       </form>
     </div>
   )

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import CommentSection from "./commentSection";
 import CommentIcon from '@mui/icons-material/Comment';
 import GuidelineElement from "./guidelineElement";
+import ErrorBanner from "../../errorBanner";
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -39,6 +40,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [commentContent, setCommentContent] = useState<string>('')
     const [annotation, setAnnotation] = useState<Array<number>>([])
     const [showGuidelineElement, setShowGuidelineElement] = useState<boolean>(false)
+    const [error, setError] = useState<string>('')
 
 
     // calls to Databse
@@ -49,7 +51,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors (first_name, last_name))))`)
+            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors)))`)
             .eq('id', id)
             .single()
     
@@ -62,7 +64,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             const quotes : any = data.quotes
             setAnnotationText(setTargetRef(quotes.paragraphs.text, quotes.ref_loc))
             const document : any = quotes.paragraphs.documents
-            setCitedAuthors(document.authors.map((auth: any) => auth.first_name + ' ' + auth.last_name))
+            setCitedAuthors(document.authors.split(';'))
             setCitedTitle(document.title)
             setCitedPubYear(document.pub_year)
             setCitedAbstract(document.abstract)
@@ -77,7 +79,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             }
           }
         } catch (error) {
-          alert('Error loading Annotation data!')
+          setError('Error loading Annotation data!')
         } finally {
           setLoading(false)
         }
@@ -107,7 +109,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             setNextAnnotationElement(data.id)
           }
         } catch (error) {
-          alert('Error loading outstanding Annotations data!')
+          setError('Error loading outstanding Annotations data!')
         } finally {
           setLoading(false)
         }
@@ -137,7 +139,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             }
 
         } catch (error) {
-            alert('Error uploading Annotations!')
+            setError('Error uploading Annotations!')
         } finally {
             setUploading(false)
             if (status === 'annotated') {setUnsafedChanges(false)}
@@ -152,10 +154,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
       useEffect(() => {
         getAnnotations()
       }, [id, user, getAnnotations])
-
-
-
-
 
 
     //set unmount event listener
@@ -273,7 +271,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
 
     const handleSkipp = () => {
         if(!commentContent){
-            alert('no comment')
+            setError('comment is required for skipp')
             return
         }
         updateAnnotation('skipped')
@@ -288,6 +286,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
 
     return (
         <div className="annotation_site_container" >
+            {error && <ErrorBanner message={error} setError={setError}/>}
             <div className="annotation_container">
                 {!loading &&
                 <div className="work_area_container">
