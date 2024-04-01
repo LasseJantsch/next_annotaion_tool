@@ -45,7 +45,7 @@ const Header = () => {
                    <Link href='/'><button id='menu_card_item_1' className="menu_card_item">Overview</button></Link>
                 </div>
                 <div className="menue_card_item_container">
-                    <Link href='/annotation'><button id='menu_card_item_2' className="menu_card_item">Guidelines</button></Link>
+                    <Link href='/guidelines'><button id='menu_card_item_2' className="menu_card_item">Guidelines</button></Link>
                 </div>
             </div>
             <div className="menu_card_backdrop" onClick={handleMenuClick} />

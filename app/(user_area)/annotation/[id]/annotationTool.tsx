@@ -15,6 +15,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation'
 import CommentSection from "./commentSection";
 import CommentIcon from '@mui/icons-material/Comment';
+import GuidelineElement from "./guidelineElement";
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -37,6 +38,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
     const [commentContent, setCommentContent] = useState<string>('')
     const [annotation, setAnnotation] = useState<Array<number>>([])
+    const [showGuidelineElement, setShowGuidelineElement] = useState<boolean>(false)
 
 
     // calls to Databse
@@ -270,6 +272,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     }
 
     const handleSkipp = () => {
+        if(!commentContent){
+            alert('no comment')
+            return
+        }
         updateAnnotation('skipped')
         nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
         router.push('/')
@@ -327,7 +333,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 }
                 <div className="navigation_container">
                     <div className="help_button_container">
-                        <button className="help_button" >
+                        <button className="help_button" onClick={()=>setShowGuidelineElement(prev => !prev)} >
                             <QuestionMarkTwoToneIcon className="help_button_icon"/>
                         </button>
                     </div>
@@ -354,6 +360,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 </div>
 
             </div>
+            { showGuidelineElement &&
+            <GuidelineElement 
+                setShowGuidelineElement={setShowGuidelineElement}
+            />}
         </div>
     )
 }
