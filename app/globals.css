@@ -530,8 +530,8 @@ button svg{
   align-items: center;
   flex-direction: column;
   width: 200px;
-  height: 300px;
-  background-color: #cecece;
+  height: 250px;
+  background-color: #e6e6e6;
   padding: 40px;
   border-radius: 10px;
 }
@@ -560,3 +560,77 @@ button svg{
   width: 200px;
   margin-top: 20px;
 }
+/* GUIDELINES */
+.guidelines_page {
+  display: flex;
+  justify-content: center;
+}
+.guidelines_container {
+  width: 800px;
+  padding: 20px;
+}
+.guideline_element_container{
+  position:absolute;
+  display: flex;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.guideline_elment_backdrop{
+  position:absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #00000030;
+  overflow-x: hidden;
+  z-index: 1;
+}
+.guideline_element{
+  height: 550px;
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 8px  #00000030 ;
+  z-index: 2;
+}
+.guideline_element_header{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 5px;
+}
+.guideline_element_content_container{
+  height: 500px;
+  overflow-x: auto;
+}
+
+/* ERROR */
+.error_container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  right: 100px;
+  height: 50px;
+  padding: 0 20px 0 20px;
+  background-color: red;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 0 4px red;
+  z-index: 999;
+}
+
+/* REVIEW */
+.review_text_container{
+  width: 550px;
+  padding: 10px;
+}
+
+.comments_container{
+  display: flex;
+  flex-direction: column;
+}
+

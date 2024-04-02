@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
-import Dashboard from './dashboard'
+import Guidlines from './guidelines'
 import { redirect } from 'next/navigation'
+
+
 
 
 export default async function Account() {
@@ -12,6 +14,9 @@ export default async function Account() {
 
   !user && redirect('/login')
 
-
-  return <Dashboard user={user} />
+  return( 
+    <div className='guidelines_page'>
+        <Guidlines/>
+    </div>
+  )
 }
