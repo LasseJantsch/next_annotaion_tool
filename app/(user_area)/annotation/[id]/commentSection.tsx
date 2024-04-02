@@ -9,7 +9,7 @@ const CommentSection = ({commentContent, setCommentContent, setShowCommentSectio
         if (true) {
             setLoading(false)
         }
-    })
+    },[])
 
     const handleCommentInput = (e:ChangeEvent<HTMLTextAreaElement>) => {
         setCommentContent(e.target.value)

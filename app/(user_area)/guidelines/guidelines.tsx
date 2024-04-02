@@ -21,7 +21,7 @@ const Guidelines = () => {
             </blockquote>
             <p>And <strong>bold</strong>, <em>italics</em>, and even <em>italics and later <strong>bold</strong></em>. Even <del>strikethrough</del>. <a href="https://markdowntohtml.com">A link</a> to somewhere.</p>
             <p>And code highlighting:</p>
-            <pre><code className="lang-js"><span className="hljs-keyword">var</span> foo = <span className="hljs-string">'bar'</span>;
+            <pre><code className="lang-js"><span className="hljs-keyword">var</span> foo = <span className="hljs-string">bar</span>;
 
             <span className="hljs-function"><span className="hljs-keyword">function</span> <span className="hljs-title">baz</span><span className="hljs-params">(s)</span> </span>
             </code></pre>

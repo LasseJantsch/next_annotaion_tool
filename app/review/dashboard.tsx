@@ -37,7 +37,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
       } finally {
         setLoading(false)
       }
-    }, [user, supabase])
+    }, [supabase])
 
     
     useEffect(() => {

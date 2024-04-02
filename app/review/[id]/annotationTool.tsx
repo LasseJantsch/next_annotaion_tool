@@ -77,7 +77,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 setAnnotation((annotations[i] as any)['location'])
             }
         }
-    }, [activeAnnotation])
+    }, [activeAnnotation, annotations])
     
     //update markings on annotation change
     useEffect(()=>{
@@ -89,7 +89,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 (document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.remove('marked') 
             }
         })
-    },[annotation])
+    },[annotation, annotationText, id])
 
 
     return (
@@ -100,6 +100,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     <div className="comments_container">
                     {commentContent &&
                     commentContent.map(comm => <CommentSection 
+                        key={id}
                         id = {(comm as any).id}
                         activeId = {activeAnnotation}
                         commentContent = {((comm as any).comment )}

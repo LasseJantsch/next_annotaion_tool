@@ -116,7 +116,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         } finally {
           setLoading(false)
         }
-      }, [user, supabase])
+      }, [user, id, supabase])
 
       //update annotation information
       const updateAnnotation = async (status: string) => {
@@ -240,7 +240,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         } else {
             setUnsafedChanges(true)
         }
-    },[annotation])
+    },[annotation, annotationText, prevAnnotation, id])
 
 
     // Event Handle functions

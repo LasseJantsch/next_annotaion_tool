@@ -4,7 +4,7 @@ const ErrorBanner = ({message, setError}:{message:string, setError:React.Dispatc
 
     useEffect(()=>{
         setTimeout(()=> setError(''), 5000)
-    },[])
+    },[setError])
 
     return(
         <div className="error_container">

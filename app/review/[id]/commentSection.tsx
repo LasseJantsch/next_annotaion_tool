@@ -14,7 +14,7 @@ const CommentSection = ({id, activeId, commentContent,}:{id:any, activeId:any, c
         if (activeId === id) {
             document.getElementById(id)?.classList.add('active')
         }
-    },[activeId])
+    },[activeId, id])
 
     return(
         <div id={id} className="comment_section active">

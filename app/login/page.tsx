@@ -3,7 +3,7 @@ import {login} from './actions'
 import { useState } from 'react'
 import ErrorBanner from '../(user_area)/errorBanner'
 
-export default async function LoginPage() {
+export default function LoginPage() {
   const [error, setError] = useState<string>('')
 
   const handleFormSubmit = (event:FormData) => {
