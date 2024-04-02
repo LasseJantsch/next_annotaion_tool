@@ -57,7 +57,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     
           if (error && status !== 406) {
             console.log(error)
-            throw error
+            throw new Error('Error loading Annotation data!')
+          }
+          if (error && status === 406){
+            throw new Error("Insufficient permission")
           }
     
           if (data) {
@@ -78,8 +81,8 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             } else {
             }
           }
-        } catch (error) {
-          setError('Error loading Annotation data!')
+        } catch (error: any) {
+          setError(error.message)
         } finally {
           setLoading(false)
         }

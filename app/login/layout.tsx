@@ -12,9 +12,7 @@ export default async function AppLayout({
     const {
       data: { user },
     } = await supabase.auth.getUser()
-  
-    user && redirect('/')
-
+    
   return (
     <div>
         {children}

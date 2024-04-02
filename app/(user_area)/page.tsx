@@ -13,6 +13,5 @@ export default async function Account() {
   !user && redirect('/login')
 
 
-
   return <Dashboard user={user} />
 }
