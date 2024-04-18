@@ -51,7 +51,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors)))`)
+            .select(`context_location, scope_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text))`) //, cited_documents(documents('title', 'authors', 'pub_year))
             .eq('id', id)
             .single()
     
@@ -64,24 +64,27 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
-            const quotes : any = data.quotes
-            setAnnotationText(setTargetRef(quotes.paragraphs.text, quotes.ref_loc))
-            const document : any = quotes.paragraphs.documents
-            setCitedAuthors(document.authors.split(';'))
+            const refs : any = (data as any).refs
+            console.log(refs)
+            setAnnotationText(setTargetRef(refs.paragraphs.text, refs.ref_loc))
+            const document : any = refs.documents[0]
+            setCitedAuthors(document.authors.split(' ,'))
             setCitedTitle(document.title)
             setCitedPubYear(document.pub_year)
             setCitedAbstract(document.abstract)
             setCitedDOI(document.doi)
-            if (data.annotation_location) {
-                setPrevAnnotation(data.annotation_location)
-                setAnnotation(data.annotation_location)
+            if ((data as any).context_location) {
+                console.log('ann laoded')
+                setPrevAnnotation((data as any).context_location)
+                setAnnotation((data as any).context_location)
             }
-            if (data.comment) {
-                setCommentContent(data.comment)
+            if ((data as any).comment) {
+                setCommentContent((data as any).comment)
             } else {
             }
           }
         } catch (error: any) {
+            console.log(error)
           setError(error.message)
         } finally {
           setLoading(false)
@@ -128,7 +131,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 }
                 const { error } = await supabase
                         .from('annotations')
-                        .update({status: status, annotation_location: annotation, comment: commentContent})
+                        .update({status: status, context_location: annotation, comment: commentContent})
                         .eq('id', id)
                 if(error){throw error}
             } else if (status === 'skipped') {

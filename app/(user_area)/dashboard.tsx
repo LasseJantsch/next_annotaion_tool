@@ -21,7 +21,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
     type annotationElement = {
       id: string,
       status:string,
-      quotes: {
+      refs: {
         id: string,
         annotation_count: number
       }
@@ -30,7 +30,6 @@ const Dashboard = ({ user }: { user: User | null }) => {
     const getProfile = useCallback(async () => {
       try {
         setProfileLoading(true)
-  
         const { data, error, status } = await supabase
           .from('users')
           .select(`first_name, last_name`)
@@ -58,7 +57,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
         setAnnLoading(true)
         const { data, error, status } = await supabase
           .from('annotations')
-          .select('id, status, quotes (id, annotation_count)')
+          .select('id, status, refs (id, annotation_count)')
           .eq('user_id', user?.id)
   
         if (error && status !== 406) {
@@ -153,7 +152,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
                           <TableEntry 
                               id={el.id}
                               status={el.status}
-                              count={el.quotes.annotation_count}
+                              count={el.refs.annotation_count}
                               key={el.id}
                           />
                         );

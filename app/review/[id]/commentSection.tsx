@@ -2,7 +2,7 @@ import React, { ChangeEvent, useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
 
 
-const CommentSection = ({id, activeId, commentContent,}:{id:any, activeId:any, commentContent: string}) => {
+const CommentSection = ({id, activeId, setActiveId, commentContent,}:{id:any, activeId:any, setActiveId:React.Dispatch<React.SetStateAction<string>>, commentContent: string}) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(()=>{
@@ -10,14 +10,10 @@ const CommentSection = ({id, activeId, commentContent,}:{id:any, activeId:any, c
             setLoading(false)
         }
     },[])
-    useEffect(()=>{
-        if (activeId === id) {
-            document.getElementById(id)?.classList.add('active')
-        }
-    },[activeId, id])
+
 
     return(
-        <div id={id} className="comment_section active">
+        <div id={id} className={id === activeId? "comment_section active":"comment_section"} onClick={()=>setActiveId(id)}>
             <div className="comment_section_navigation_container">
                 <div className="comment_title_container">
                     <div className="comment_tilte">Comment</div>
