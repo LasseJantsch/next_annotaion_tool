@@ -7,7 +7,8 @@ const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{ti
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (title && authors && pub_year && abstract && doi) {
+        console.log(title, authors, pub_year)
+        if (title && authors && pub_year) {
             setLoading(false)
         }
     }, [title, authors, pub_year, abstract, doi])
@@ -35,10 +36,10 @@ const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{ti
                     <div className="info_tilte">{title}</div>
                 </div>
                 <div className="info_meta_container">
-                    <div className="info_meta">{pub_year}: {authors.length < 4 ? authors.map((auth: any) => auth.first_name + ' ' + auth.last_name).join(', '): authors[0] + ' et al.'}</div>
+                    <div className="info_meta">{pub_year}: {authors.length < 4 ? authors.join(', '): authors[0] + ' et al.'}</div>
                 </div>
                 <div className="info_abstract_container">
-                    <div className="info_abstract">{abstract}</div>
+                    {/* <div className="info_abstract">{abstract}</div> */}
                 </div>
             </div>}
         </div>

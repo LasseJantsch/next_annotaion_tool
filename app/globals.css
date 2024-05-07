@@ -633,4 +633,14 @@ button svg{
   display: flex;
   flex-direction: column;
 }
+.comments_container .comment_section{
+  display: flex;
+}
+.comments_container .comment_section.active{
+  box-shadow: 0 0 8px #2d88ff;
+}
+
+.comments_container textarea{
+  pointer-events: none;
+}
 

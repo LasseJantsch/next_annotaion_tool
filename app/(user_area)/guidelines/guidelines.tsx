@@ -4,7 +4,7 @@ const Guidelines = () => {
 
     return(
         <div className="guidelines_container">
-                        <h3>Annotation Guidelines</h3>
+            <h3>Annotation Guidelines</h3>
             <p>We want to annotate citation contexts to build a database for the training of citation context extraction Models.<strong></strong>The scope is to mark the context of a citation in a given Paragraph. As the
             <strong>citation context,</strong>
             we understand the citation surrounding sentence segments, that semantically relate to the target reference.&nbsp;</p>
