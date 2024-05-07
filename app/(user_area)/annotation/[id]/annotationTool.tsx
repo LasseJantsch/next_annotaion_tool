@@ -145,6 +145,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             }
 
         } catch (error) {
+            console.log(error)
             setError('Error uploading Annotations!')
         } finally {
             setUploading(false)
