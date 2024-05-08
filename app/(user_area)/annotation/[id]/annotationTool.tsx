@@ -23,24 +23,33 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const supabase = createClient()
     const id = params.id
     const router = useRouter()
+
     const [annotationText, setAnnotationText] = useState<string[]>()
     const [citedTitle, setCitedTitle] = useState<string>()
     const [citedPubYear, setCitedPubYear] = useState<number>()
     const [citedAuthors, setCitedAuthors] = useState<string[]>()
     const [citedAbstract, setCitedAbstract] = useState<string>()
     const [citedDOI, setCitedDOI] = useState<string>()
+
+    const [toolStatus, setToolStatus] = useState('mark_info_tool')
+    const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
+    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [showGuidelineElement, setShowGuidelineElement] = useState<boolean>(false)
+
     const [loading, setLoading] = useState<boolean>(true)
-    const [prevAnnotation, setPrevAnnotation] = useState<Array<number>>([])
     const [uploading, setUploading] = useState<boolean>(false)
     const [unsafedChanges, setUnsafedChanges] = useState(false)
+
     const [nextAnnotationElement, setNextAnnotationElement] = useState<string>()
-    const [toolStatus, setToolStatus] = useState('mark_tool')
-    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
-    const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
-    const [commentContent, setCommentContent] = useState<string>('')
-    const [annotation, setAnnotation] = useState<Array<number>>([])
-    const [showGuidelineElement, setShowGuidelineElement] = useState<boolean>(false)
     const [error, setError] = useState<string>('')
+
+    const [commentContent, setCommentContent] = useState<string>('')
+
+    const [annotation, setAnnotation] = useState<Array<number>>([])
+    const [prevAnnotation, setPrevAnnotation] = useState<Array<number>>([])
+  
+
+ 
 
 
     // calls to Databse
@@ -51,7 +60,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`annotation_location, comment, quotes (ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors)))`)
+            .select(`context_location, scope_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text))`) //, cited_documents(documents('title', 'authors', 'pub_year))
             .eq('id', id)
             .single()
     
@@ -64,24 +73,27 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
-            const quotes : any = data.quotes
-            setAnnotationText(setTargetRef(quotes.paragraphs.text, quotes.ref_loc))
-            const document : any = quotes.paragraphs.documents
-            setCitedAuthors(document.authors.split(';'))
+            const refs : any = (data as any).refs
+            console.log(refs)
+            setAnnotationText(setTargetRef(refs.paragraphs.text, refs.ref_loc))
+            setAnnotation(Array(refs.paragraphs.text.length).fill(0))
+            const document : any = refs.documents[0]
+            setCitedAuthors(document.authors.split(' ,'))
             setCitedTitle(document.title)
             setCitedPubYear(document.pub_year)
             setCitedAbstract(document.abstract)
             setCitedDOI(document.doi)
-            if (data.annotation_location) {
-                setPrevAnnotation(data.annotation_location)
-                setAnnotation(data.annotation_location)
+            if ((data as any).context_location) {
+                setPrevAnnotation((data as any).context_location)
+                setAnnotation((data as any).context_location)
             }
-            if (data.comment) {
-                setCommentContent(data.comment)
+            if ((data as any).comment) {
+                setCommentContent((data as any).comment)
             } else {
             }
           }
         } catch (error: any) {
+            console.log(error)
           setError(error.message)
         } finally {
           setLoading(false)
@@ -128,7 +140,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 }
                 const { error } = await supabase
                         .from('annotations')
-                        .update({status: status, annotation_location: annotation, comment: commentContent})
+                        .update({status: status, context_location: annotation, comment: commentContent})
                         .eq('id', id)
                 if(error){throw error}
             } else if (status === 'skipped') {
@@ -142,6 +154,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             }
 
         } catch (error) {
+            console.log(error)
             setError('Error uploading Annotations!')
         } finally {
             setUploading(false)
@@ -213,62 +226,76 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     // update tools on toolStatus change
     useEffect(()=>{
         if (document.getElementById('erase_tool')) {
+            console.log(toolStatus)
             switch (toolStatus) {
-                case 'mark_tool':
-                    (document.getElementById('mark_tool') as HTMLElement).className = 'active';
+                case 'mark_info_tool':
+                    (document.getElementById('mark_info_tool') as HTMLElement).className = 'active';
+                    (document.getElementById('mark_judge_tool') as HTMLElement).classList.remove('active');  
+                    (document.getElementById('mark_backgr_tool') as HTMLElement).classList.remove('active');  
                     (document.getElementById('erase_tool') as HTMLElement).classList.remove('active')  
                     break
+                case 'mark_judge_tool':
+                    (document.getElementById('mark_judge_tool') as HTMLElement).className = 'active';
+                    (document.getElementById('mark_info_tool') as HTMLElement).classList.remove('active');  
+                    (document.getElementById('mark_backgr_tool') as HTMLElement).classList.remove('active');  
+                    (document.getElementById('erase_tool') as HTMLElement).classList.remove('active') 
+                    break
+                case 'mark_backgr_tool':
+                    (document.getElementById('mark_backgr_tool') as HTMLElement).className = 'active';
+                    (document.getElementById('mark_info_tool') as HTMLElement).classList.remove('active');  
+                    (document.getElementById('mark_judge_tool') as HTMLElement).classList.remove('active');  
+                    (document.getElementById('erase_tool') as HTMLElement).classList.remove('active')
+                    break
                 case 'erase_tool':
-                    (document.getElementById('mark_tool') as HTMLElement).classList.remove('active');
-                    (document.getElementById('erase_tool') as HTMLElement).className = 'active'  
+                    (document.getElementById('erase_tool') as HTMLElement).className = 'active';
+                    (document.getElementById('mark_info_tool') as HTMLElement).classList.remove('active'); 
+                    (document.getElementById('mark_judge_tool') as HTMLElement).classList.remove('active');
+                    (document.getElementById('mark_backgr_tool') as HTMLElement).classList.remove('active')
                     break
             }
         }
     }, [toolStatus])
 
-    // update markings on annotation change
-    useEffect(()=>{
-        annotationText && Array.from(Array(annotationText.length).keys()).forEach(i => {
-            if(annotation.includes(i)){
-                !(document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.add('marked')
-            } else {
-                (document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.remove('marked') 
-            }
-        })
-        if (annotation === prevAnnotation) {
-            setUnsafedChanges(false)
-        } else {
-            setUnsafedChanges(true)
-        }
-    },[annotation, annotationText, prevAnnotation, id])
-
 
     // Event Handle functions
+
     const handleToolChange = (event: React.MouseEvent<HTMLButtonElement>) => {
         setToolStatus((event.target as HTMLElement).id)
     }
 
     const handleResetAnnotation = () => {
-        setToolStatus('mark_tool')
-        setAnnotation([])
+        if (annotationText) {
+            setToolStatus('mark_info_tool')
+            setAnnotation(Array(annotationText.length).fill(0))
+        }
+    }
+
+    const setAnnotationNumbers= (arr: Array<number>, type: number, setAnnotation: React.Dispatch<React.SetStateAction<Array<number>>>) => {
+        var updatedArr = [...annotation]
+        arr.forEach(i => {
+            updatedArr[i] = type
+        })
+        console.log(updatedArr)
+        setAnnotation(updatedArr)
     }
 
     const handleMark = () =>{
         const selected_ids: number[] = getSelectedIds()
         if (!selected_ids) {return}
         switch (toolStatus) {
-            case 'mark_tool':
-                setAnnotation(prev => {
-                    var add_ids:Array<number> =  []
-                    selected_ids.forEach(id => {
-                        !prev.includes(id) && add_ids.push(id)
-                    })
-                    return [...prev, ...add_ids]
-                })
-                break
             case 'erase_tool':
-                setAnnotation(prev => prev.filter(id => !selected_ids.includes(id)))
-        }
+                setAnnotationNumbers(selected_ids, 0, setAnnotation)
+                break
+            case 'mark_info_tool':
+                setAnnotationNumbers(selected_ids, 1, setAnnotation)
+                break
+            case 'mark_judge_tool':
+                setAnnotationNumbers(selected_ids, 2, setAnnotation)
+                break
+            case 'mark_backgr_tool':
+                setAnnotationNumbers(selected_ids, 3, setAnnotation)
+                break    
+        };
         (window.getSelection() as Selection).removeAllRanges()
     }
 
@@ -295,7 +322,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 <div className="work_area_container">
                     <div className="tools_container">
                         <div className="mark_erase_container">
-                            <button id='mark_tool' className="active" onClick={handleToolChange}>
+                            <button id='mark_info_tool' className="active" onClick={handleToolChange}>
+                                <DriveFileRenameOutlineIcon className="mark_button_icon"/>
+                            </button>
+                            <button id='mark_judge_tool' className="" onClick={handleToolChange}>
+                                <DriveFileRenameOutlineIcon className="mark_button_icon"/>
+                            </button>
+                            <button id='mark_backgr_tool' className="" onClick={handleToolChange}>
                                 <DriveFileRenameOutlineIcon className="mark_button_icon"/>
                             </button>
                             <button id="erase_tool" className="" onClick={handleToolChange}>
@@ -310,7 +343,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     </div>
                     <div className="annotation_text_container" onMouseUp={handleMark}>
                         <div className="annotation_text">
-                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} setShowInfoCard={setShowInfoCard}/>)}
+                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} setShowInfoCard={setShowInfoCard}/>)}
                         </div>
                     </div>
                     <div className="info_container">

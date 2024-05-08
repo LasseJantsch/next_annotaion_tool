@@ -311,9 +311,24 @@ button svg{
 .annotation_text span {
   user-select: text;
 }
-.annotation_text .marked{
-  background-color: #cacaca89;
-  }
+.annotation_text .marked.info{
+  background-color: #00ff2a89;
+}
+.annotation_text .marked.info + .filler:has( + .marked) {
+  background-color: #00ff2a89;
+}
+.annotation_text .marked.judge{
+  background-color: #ffe60089;
+}
+.annotation_text .marked.judge + .filler:has( + .marked) {
+  background-color: #ffe60089;
+}
+.annotation_text .marked.backgr{
+  background-color: #a200ff89;
+}
+.annotation_text .marked.backgr + .filler:has( + .marked) {
+  background-color: #a200ff89;
+}
 .annotation_text .text:not(.marked) + .filler + .marked{
   border-radius: 5px 0 0 5px;
 }
@@ -333,12 +348,12 @@ button svg{
   border-radius: 5px 0 0 5px;
 }
 .annotation_text .reference{
-  background-color: #004cff50;
+  background-color: #004cff50 !important;
   border-radius: 5px;
   cursor: pointer;
 }
 .annotation_text .target{
-  background-color: #ff000089 ;
+  background-color: #ff000089 !important;
   border-radius: 5px;
 }
 
@@ -632,5 +647,15 @@ button svg{
 .comments_container{
   display: flex;
   flex-direction: column;
+}
+.comments_container .comment_section{
+  display: flex;
+}
+.comments_container .comment_section.active{
+  box-shadow: 0 0 8px #2d88ff;
+}
+
+.comments_container textarea{
+  pointer-events: none;
 }
 
