@@ -60,7 +60,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`context_location, scope_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text))`) //, cited_documents(documents('title', 'authors', 'pub_year))
+            .select(`context_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text))`) //, cited_documents(documents('title', 'authors', 'pub_year))
             .eq('id', id)
             .single()
     

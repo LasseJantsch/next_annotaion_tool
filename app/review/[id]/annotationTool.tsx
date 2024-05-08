@@ -20,10 +20,11 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [loading, setLoading] = useState<boolean>(true)
     const [prevAnnotation, setPrevAnnotation] = useState<Array<number>>([])
     const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [commentContents, setCommentContents] = useState<any>({})
+    const [annotations, setAnnotations] = useState<any>({})
     const [commentContent, setCommentContent] = useState<Object[]>()
-    const [annotations, setAnnotations] = useState<Object[]>([])
     const [activeAnnotation, setActiveAnnotation] = useState<string>('')
-    const [annotation, setAnnotation] = useState<number[]>()
+    const [annotation, setAnnotation] = useState<number[]>([])
 
     // calls to Databse
 
@@ -32,8 +33,8 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         try {
           setLoading(true)
           const { data, error, status}:{data: any, error: any, status: any}= await supabase
-            .from('quotes')
-            .select(`ref_loc, paragraphs (text, documents (title, pub_year, abstract, doi, authors)), annotations (annotation_location, comment, status, users (id))`)
+            .from('refs')
+            .select(`ref_loc, documents(title, authors, pub_year), paragraphs (text), annotations (context_location, comment, status, users(id))`)
             .eq('id', id)
             .single()
     
@@ -42,24 +43,29 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             throw error
           }
           if (data) {
+            console.log(data)
             setAnnotationText(setTargetRef(data.paragraphs.text, data.ref_loc))
-            setCitedAuthors(data.paragraphs.documents.authors.split(';'))
-            setCitedTitle(data.paragraphs.documents.title)
-            setCitedPubYear(data.paragraphs.documents.pub_year)
-            setCitedAbstract(data.paragraphs.documents.abstract)
-            setCitedDOI(data.paragraphs.documents.doi)
+            setAnnotation(Array(data.paragraphs.text.length).fill(0))
+            setCitedAuthors(data.documents[0].authors.split(' ,'))
+            setCitedTitle(data.documents[0].title)
+            setCitedPubYear(data.documents[0].pub_year)
             if (data.annotations) {
-                var anns:any = []
-                data.annotations.forEach((ann:any) => anns.push({"id": ann.users.id, "location":ann.annotation_location}))
+                var anns:any = {}
+                var comms:any = {}
+                data.annotations.forEach((ann:any) => {
+                    const id = ann.users.id
+                    const location = ann.context_location
+                    const comment = ann.comment
+                    anns[id] = location
+                    comms[id] = comment
+                })
                 setAnnotations(anns)
-                var comms:any = []
-                data.annotations.forEach((ann:any) => comms.push({"id": ann.users.id, "comment":ann.comment}))
-                setCommentContent(comms)
+                setCommentContents(comms)
                 setActiveAnnotation(data.annotations[0].users.id)
             }
           }
         } catch (error) {
-
+            console.log(error)
           alert('Error loading Annotation data!')
         } finally {
           setLoading(false)
@@ -72,23 +78,12 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
       }, [id, getAnnotations])
 
     useEffect(() => {
-        for(let i=0;i< annotations.length; i++) {
-            if ((annotations[i] as any)['id']===activeAnnotation) {
-                setAnnotation((annotations[i] as any)['location'])
-            }
+        if (annotations[activeAnnotation]) {
+            setAnnotation(annotations[activeAnnotation])
+        } else {
+            setAnnotation([])
         }
     }, [activeAnnotation, annotations])
-    
-    //update markings on annotation change
-    useEffect(()=>{
-        annotationText && Array.from(Array(annotationText.length).keys()).forEach(i => {
-            if(annotation?.includes(i)){
-                !(document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.add('marked')
-            } else {
-                (document.getElementById(`${id}_${i}`) as HTMLElement).classList.contains('marked') && (document.getElementById(`${id}_${i}`) as HTMLElement).classList.remove('marked') 
-            }
-        })
-    },[annotation, annotationText, id])
 
 
     return (
@@ -97,18 +92,18 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                 {!loading &&                              
                 <div className="work_area_container">
                     <div className="comments_container">
-                    {commentContent &&
-                    commentContent.map((comm:any)=> <CommentSection 
-                        key={comm.id}
-                        id = {comm.id}
+                    {commentContents &&
+                    Object.entries(commentContents).map((comm:any)=> <CommentSection 
+                        key={comm[0]}
+                        id = {comm[0]}
                         activeId = {activeAnnotation}
                         setActiveId = {setActiveAnnotation}
-                        commentContent = {((comm as any).comment )}
+                        commentContent = {comm[1]}
                     />)}
                     </div>
                     <div className="review_text_container">
                         <div className="annotation_text">
-                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} setShowInfoCard={setShowInfoCard}/>)}
+                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} setShowInfoCard={setShowInfoCard}/>)}
                         </div>
                     </div>
                     <div className="info_container">
@@ -117,8 +112,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                                 title ={citedTitle as string}
                                 authors={citedAuthors as string[]}
                                 pub_year={citedPubYear as number}
-                                abstract={citedAbstract as string}
-                                doi = {citedDOI as string}
                                 setShowInfoCard={setShowInfoCard}
                             />}
                     </div>
