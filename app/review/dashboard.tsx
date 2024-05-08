@@ -21,8 +21,9 @@ const Dashboard = ({ user }: { user: User | null }) => {
       try {
         setLoading(true)
         const { data, error, status } = await supabase
-          .from('quotes')
+          .from('refs')
           .select('id, annotation_count, inter_annotation_agreement')
+          .gte('annotation_count', 1)
   
         if (error && status !== 406) {
           console.log(error)
