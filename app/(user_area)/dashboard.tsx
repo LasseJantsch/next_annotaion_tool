@@ -1,30 +1,34 @@
 'use client'
 import React, { useEffect, useState, useCallback } from "react";
-import TableEntry from "./tableEntry";
+import TableEntry from "../(components)/tableEntry";
 import { createClient } from '@/utils/supabase/client'
 import { type User } from '@supabase/supabase-js'
-import ErrorBanner from "./errorBanner";
+import ErrorBanner from "../(components)/errorBanner";
+import ProfileCard from "../(components)/profileCard";
+import Table from "../(components)/table";
 
 const Dashboard = ({ user }: { user: User | null }) => {
     const supabase = createClient()
+    const [progressRatio, setProgressRatio] = useState<number[]>([])
+    const [progressCounts, setProgressCounts] = useState<number[]>([])
+    const columnNames = ['ID', 'Status','Comment','Created at', 'Updated at', '']
+    const columnWidth = [100, 140, 100, 130, 150, 70]
+    const columnSpecification = ['text_entry', 'status_entry','icon_entry', 'text_entry', 'text_entry', 'action_entry']
     const [profileLoading, setProfileLoading] = useState<boolean>()
     const [annLoading, setAnnLoading] = useState<boolean>()
     const [firstName, setFirstName] = useState<string>()
     const [lastName, setLastName] = useState<string>()
 
     const [annotationElements, setAnnotationElements] = useState<annotationElement[]>()
-    const [total, setTotal] = useState<number>()
-    const [annotaded, setAnnotaded] =useState(0)
-    const [skipped, setSkipped] = useState(0)
+    const [nextAnnotationId, setNextAnnotationId] = useState<string>('')
     const [error, setError] = useState<string>('')
 
     type annotationElement = {
       id: string,
       status:string,
-      refs: {
-        id: string,
-        annotation_count: number
-      }
+      comment: string,
+      created_at: string,
+      updated_at: string,
     }
 
     const getProfile = useCallback(async () => {
@@ -57,7 +61,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
         setAnnLoading(true)
         const { data, error, status } = await supabase
           .from('annotations')
-          .select('id, status, refs (id, annotation_count)')
+          .select('id, status, comment, created_at, updated_at')
           .eq('user_id', user?.id)
   
         if (error && status !== 406) {
@@ -66,9 +70,9 @@ const Dashboard = ({ user }: { user: User | null }) => {
         }
   
         if (data) {
-          console.log(data)
-          setAnnotationElements(data as any)
-          setTotal(data.length)
+          setAnnotationElements(data)
+          const next_element = data.find(el => el.status==='outstanding')
+          next_element && setNextAnnotationId(next_element.id as string)
         }
       } catch (error) {
         setError('Error loading ann data!')
@@ -92,17 +96,20 @@ const Dashboard = ({ user }: { user: User | null }) => {
         }
   
         if (data) {
+          var annotated = 0, skipped = 0, outstanding = 0          
           data.forEach(status => {
             switch (status.status) {
               case 'annotated':
-                setAnnotaded(status.count)
+                annotated = status.count
                 break
               case 'skipped':
-                setSkipped(status.count)
+                skipped = status.count
                 break
+              case 'outstanding':
+                outstanding = status.count
             }
           })
-
+          setProgressCounts([annotated, skipped, outstanding])
         }
       } catch (error) {
         setError('Error loading Annotation Progress data!')
@@ -125,40 +132,36 @@ const Dashboard = ({ user }: { user: User | null }) => {
       getAnnotationProgress()
     }, [user, getAnnotationProgress])
 
+    useEffect(() => {
+      if (progressCounts) {
+        const total = progressCounts.reduce((a, b) => a + b, 0)
+        const ratios = progressCounts.map(c => {
+          return c/total
+        })
+        setProgressRatio(ratios)
+      }
+    }, [progressCounts])
+
 
     return(
       <div id="overview_contatiner">
         {error && <ErrorBanner message={error} setError={setError}/>}
-          <div id="progress_container">
-              <div id="progress_title">Progress</div>
-              {total &&
-              <div id="progress_bar_container">
-                  <div id="progress_bar_annotaded" className="progress_bar" style={{width: `${740 * annotaded/total}px`}}></div>
-                  <div id="progress_bar_skipped" className="progress_bar" style={{width:`${740 * skipped/total}px`}}></div>
-                  <div id="pogress_bar_outstanding" className="progress_bar" style={{width:`${740 * (total-annotaded-skipped)/total}px`}}></div>
-              </div>}
-          </div>
-          <div id="table_container">
-              <div id="table_header_container">
-                  <button id="id_header" className="table_header_label">ID</button>
-                  <button id="status_header" className="table_header_label">Status</button>
-                  <button id="annotation_count_header" className="table_header_label">Count</button>
-                  <button id="action_header" className="table_header_label"> </button>
-              </div> 
-              <div id="table_content_container">
-                  {annotationElements &&
-                  annotationElements.map((el) => {
-                        return(
-                          <TableEntry 
-                              id={el.id}
-                              status={el.status}
-                              count={el.refs.annotation_count}
-                              key={el.id}
-                          />
-                        );
-                  })}
-              </div>
-          </div>
+          <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`} nextAnnotationId = {nextAnnotationId}/>
+          <Table title="Tasks" classNames="overview_table" columnNames={columnNames} columnWidth={columnWidth}>
+            {annotationElements &&
+            annotationElements.map((el) => {
+              const id = el.id.substring(el.id.length - 7)
+              const created_at = el.created_at.substring(0,10)
+              const updated_at = el.updated_at.substring(0,16).replace('T', ' ')
+              return(
+                <TableEntry 
+                  columnWidth = {columnWidth}
+                  columnSpecification = {columnSpecification}
+                  data = {[id, el.status, el.comment, created_at, updated_at, el.id]}
+                />
+              );
+            })}
+          </Table>
       </div>
     )
 }

@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation'
 import CommentSection from "./commentSection";
 import CommentIcon from '@mui/icons-material/Comment';
 import GuidelineElement from "./guidelineElement";
-import ErrorBanner from "../../errorBanner";
+import ErrorBanner from "../../../(components)/errorBanner";
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {

@@ -1,7 +1,7 @@
 'use client'
 import {login} from './actions'
 import { useState } from 'react'
-import ErrorBanner from '../(user_area)/errorBanner'
+import ErrorBanner from '../(components)/errorBanner'
 
 export default function LoginPage() {
   const [error, setError] = useState<string>('')
