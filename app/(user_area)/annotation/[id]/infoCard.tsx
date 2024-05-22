@@ -1,48 +1,30 @@
 import React, { useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-
-const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{title:string, authors:string[], pub_year: number, abstract: string, doi:string, setShowInfoCard:React.Dispatch<React.SetStateAction<boolean>>}) => {
-
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        console.log(title, authors, pub_year)
-        if (title && authors && pub_year) {
-            setLoading(false)
-        }
-    }, [title, authors, pub_year, abstract, doi])
-    
+import BasicBox from "@/app/(components)/basicBox";
+import { returnAuthorString } from "./helper";
+const InfoCardElement = ({paper, section}:{paper:any, section?: string}) => {
     return(
-        <div id='info_card' className={"info_card active"}>
-            <div className="info_card_navigation_container">
-                <div className="info_more_container">
-                    <a href={doi} target="_blank">
-                        <button className="info_button">
-                            <OpenInNewIcon className="info_button_icon" />
-                        </button>
-                    </a>
-                </div>
-                <div className="info_close_container">
-                    <button className="info_button" onClick={()=>setShowInfoCard(false)}>
-                        <CloseIcon className="info_button_icon" />
-                    </button>
-                </div>
-            </div>
-            {loading?
-            <div>loading</div>:
-            <div className="info_content_container">
-                <div className="info_title_container">
-                    <div className="info_tilte">{title}</div>
-                </div>
-                <div className="info_meta_container">
-                    <div className="info_meta">{pub_year}: {authors.length < 4 ? authors.join(', '): authors[0] + ' et al.'}</div>
-                </div>
-                <div className="info_abstract_container">
-                    {/* <div className="info_abstract">{abstract}</div> */}
-                </div>
-            </div>}
+        <div className="info_card_element">
+            <div className="info_card_element_title">{paper.title}</div>
+            <div className="info_card_element_meta">{`${paper.pub_year} - ${returnAuthorString(paper.authors)}`}</div>
+            {section && <div className="info_card_element_section_name">{`Section: ${section}`}</div>}
         </div>
+    )
+}
+
+const InfoCard = ({title, papers, section}:{title:string, papers:Array<any>, section?:string}) => {
+  
+    return(
+        <BasicBox title={title} classNames="info_card active" shortcut="Space">
+            <div className="info_card_content">
+                {papers.map((p: any, i:number) => {
+                    return(
+                        <InfoCardElement paper={p} section={section}/>
+                    )
+                })}
+            </div>
+        </BasicBox>
     )
 }
 export default InfoCard

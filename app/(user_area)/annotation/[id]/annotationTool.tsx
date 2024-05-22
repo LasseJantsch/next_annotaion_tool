@@ -1,14 +1,11 @@
 'use client'
 import React, {useEffect, useState, useCallback} from "react";
-import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import BackspaceIcon from '@mui/icons-material/Backspace';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import QuestionMarkTwoToneIcon from '@mui/icons-material/QuestionMarkTwoTone';
 import KeyboardDoubleArrowLeftTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowLeftTwoTone';
 import KeyboardDoubleArrowRightTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowRightTwoTone';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import InfoCard from "./infoCard";
-import { getSelectedIds, setTargetRef } from "./helper";
+import { getSelectedIds, setTargetRef, unpackCitedPapers } from "./helper";
 import AnnotationTextElement from "./annotationTextElement";
 import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
@@ -17,6 +14,7 @@ import CommentSection from "./commentSection";
 import CommentIcon from '@mui/icons-material/Comment';
 import GuidelineElement from "./guidelineElement";
 import ErrorBanner from "../../../(components)/errorBanner";
+import AnnotationTools from "@/app/(user_area)/annotation/[id]/annotationTools";
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -25,15 +23,18 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const router = useRouter()
 
     const [annotationText, setAnnotationText] = useState<string[]>()
+    const [citingPaper, setCitingPaper] = useState<Array<any>>([])
+    const [targetPaper, setTargetPaper] = useState<Array<any>>([])
+    const [citedPaper, setCitedPaper] = useState<Array<any>>([])
+    const [section_title, setSectionTitle] = useState<string>('')
     const [citedTitle, setCitedTitle] = useState<string>()
     const [citedPubYear, setCitedPubYear] = useState<number>()
     const [citedAuthors, setCitedAuthors] = useState<string[]>()
     const [citedAbstract, setCitedAbstract] = useState<string>()
     const [citedDOI, setCitedDOI] = useState<string>()
 
-    const [toolStatus, setToolStatus] = useState('mark_info_tool')
-    const [showCommentSection, setShowCommentSection] = useState<boolean>(true)
-    const [showInfoCard, setShowInfoCard] = useState<boolean>(true)
+    const [activeTool, setActiveTool] = useState('information')
+    const [showInfo, setShowInfo] = useState<string>('info_card')
     const [showGuidelineElement, setShowGuidelineElement] = useState<boolean>(false)
 
     const [loading, setLoading] = useState<boolean>(true)
@@ -60,7 +61,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`context_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text))`) //, cited_documents(documents('title', 'authors', 'pub_year))
+            .select(`context_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text, section_title, documents(title, authors, pub_year), refs (documents(title, authors, pub_year))))`) //, cited_documents(documents('title', 'authors', 'pub_year))
             .eq('id', id)
             .single()
     
@@ -73,21 +74,19 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
+            console.log(data)
             const refs : any = (data as any).refs
-            console.log(refs)
             setAnnotationText(setTargetRef(refs.paragraphs.text, refs.ref_loc))
             setAnnotation(Array(refs.paragraphs.text.length).fill(0))
-            const document : any = refs.documents[0]
-            setCitedAuthors(document.authors.split(' ,'))
-            setCitedTitle(document.title)
-            setCitedPubYear(document.pub_year)
-            setCitedAbstract(document.abstract)
-            setCitedDOI(document.doi)
+            setTargetPaper(refs.documents)
+            setCitingPaper([refs.paragraphs.documents])
+            setCitedPaper(unpackCitedPapers(refs.paragraphs.refs))
+            setSectionTitle(refs.paragraphs.section_title)
             if ((data as any).context_location) {
                 setPrevAnnotation((data as any).context_location)
                 setAnnotation((data as any).context_location)
             }
-            if ((data as any).comment) {
+            if ((data as any).comment)  {
                 setCommentContent((data as any).comment)
             } else {
             }
@@ -193,23 +192,29 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             if ((document.activeElement as HTMLElement).id === 'comment_field') {
                 return
             }
+            event.preventDefault();
             (document.activeElement as HTMLElement).blur()
             switch (event.code){
                 case 'Digit1':
-                    setToolStatus('mark_tool')
+                    setActiveTool('information')
                     break
                 case 'Digit2':
-                    setToolStatus('erase_tool')
+                    setActiveTool('perception')
                     break
-                case 'Digit5':
-                    handleResetAnnotation();
-                    (document.getElementById('reset_button') as HTMLElement).classList.add('active');
-                    setTimeout(() => {
-                        (document.getElementById('reset_button') as HTMLElement).classList.remove('active')
-                    }, 200);
+                case 'Digit3':
+                    setActiveTool('background')
+                    break
+                case 'Digit4':
+                    setActiveTool('erase')
+                    break
+                case 'Digit9':
+                    handleResetAnnotation('reset');
                     break
                 case 'Space':
-                    setShowInfoCard(prev => !prev)
+                    setShowInfo('info_card');
+                    break
+                case 'KeyC':
+                    setShowInfo('comment');
                     break
             }
         }
@@ -220,14 +225,13 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             document.removeEventListener('keydown', (e)=>e.preventDefault())
 
           }; 
-    },[])
+    },[annotationText])
 
 
-    // update tools on toolStatus change
+    // update tools on activeTool change
     useEffect(()=>{
         if (document.getElementById('erase_tool')) {
-            console.log(toolStatus)
-            switch (toolStatus) {
+            switch (activeTool) {
                 case 'mark_info_tool':
                     (document.getElementById('mark_info_tool') as HTMLElement).className = 'active';
                     (document.getElementById('mark_judge_tool') as HTMLElement).classList.remove('active');  
@@ -254,18 +258,14 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     break
             }
         }
-    }, [toolStatus])
+    }, [activeTool])
 
 
     // Event Handle functions
 
-    const handleToolChange = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setToolStatus((event.target as HTMLElement).id)
-    }
-
-    const handleResetAnnotation = () => {
-        if (annotationText) {
-            setToolStatus('mark_info_tool')
+    const handleResetAnnotation = (tool:string) => {
+        if (annotationText && tool==='reset') {
+            setActiveTool('information')
             setAnnotation(Array(annotationText.length).fill(0))
         }
     }
@@ -275,24 +275,23 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         arr.forEach(i => {
             updatedArr[i] = type
         })
-        console.log(updatedArr)
         setAnnotation(updatedArr)
     }
 
     const handleMark = () =>{
         const selected_ids: number[] = getSelectedIds()
         if (!selected_ids) {return}
-        switch (toolStatus) {
-            case 'erase_tool':
+        switch (activeTool) {
+            case 'erase':
                 setAnnotationNumbers(selected_ids, 0, setAnnotation)
                 break
-            case 'mark_info_tool':
+            case 'information':
                 setAnnotationNumbers(selected_ids, 1, setAnnotation)
                 break
-            case 'mark_judge_tool':
+            case 'perception':
                 setAnnotationNumbers(selected_ids, 2, setAnnotation)
                 break
-            case 'mark_backgr_tool':
+            case 'background':
                 setAnnotationNumbers(selected_ids, 3, setAnnotation)
                 break    
         };
@@ -320,59 +319,44 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             <div className="annotation_container">
                 {!loading &&
                 <div className="work_area_container">
-                    <div className="tools_container">
-                        <div className="mark_erase_container">
-                            <button id='mark_info_tool' className="active" onClick={handleToolChange}>
-                                <DriveFileRenameOutlineIcon className="mark_button_icon"/>
-                            </button>
-                            <button id='mark_judge_tool' className="" onClick={handleToolChange}>
-                                <DriveFileRenameOutlineIcon className="mark_button_icon"/>
-                            </button>
-                            <button id='mark_backgr_tool' className="" onClick={handleToolChange}>
-                                <DriveFileRenameOutlineIcon className="mark_button_icon"/>
-                            </button>
-                            <button id="erase_tool" className="" onClick={handleToolChange}>
-                                <BackspaceIcon className="erase_button_icon" />
-                            </button>
-                        </div>
-                        <div className="reset_button_container">
-                            <button id="reset_button" className="reset_button" onClick={handleResetAnnotation}>
-                                <RestartAltIcon className="reset_button_icon"/>
-                            </button>
-                        </div>
-                    </div>
+                    <AnnotationTools activeTool={activeTool} handleToolChange={setActiveTool} handleResetAnnotation={handleResetAnnotation}/>
                     <div className="annotation_text_container" onMouseUp={handleMark}>
                         <div className="annotation_text">
-                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} setShowInfoCard={setShowInfoCard}/>)}
+                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} setShowInfo={setShowInfo}/>)}
                         </div>
                     </div>
+                    {showInfo === 'info_card' &&
                     <div className="info_container">
-                            {showInfoCard && 
                             <InfoCard 
-                                title ={citedTitle as string}
-                                authors={citedAuthors as string[]}
-                                pub_year={citedPubYear as number}
-                                abstract={citedAbstract as string}
-                                doi = {citedDOI as string}
-                                setShowInfoCard={setShowInfoCard}
-                            />}
-                            {showCommentSection &&
-                            <CommentSection 
-                                commentContent = {commentContent}
-                                setCommentContent = {setCommentContent}
-                                setShowCommentSection={setShowCommentSection}
+                                title ='Citing Paper'
+                                papers = {citingPaper}
+                                section = {section_title}
                             />
-                            }
-                    </div>
+                            <InfoCard 
+                                title ='Target Citation'
+                                papers = {targetPaper}
+                            />
+                            <InfoCard 
+                                title ='Cited Papers'
+                                papers = {citedPaper}
+                            />
+                    </div>}
+                    {showInfo === 'comment' &&
+                        <div className="info_container">
+                        <CommentSection 
+                            commentContent = {commentContent}
+                            setCommentContent = {setCommentContent}
+                        />
+                    </div>}
                 </div>
                 }
                 <div className="navigation_container">
                     <div className="help_button_container">
-                        <button className="help_button" onClick={()=>setShowGuidelineElement(prev => !prev)} >
+                        <button className="help_button" onClick={()=>setShowInfo('info_card')} >
                             <QuestionMarkTwoToneIcon className="help_button_icon"/>
                         </button>
                     </div>
-                    <div className="help_button_container" onClick={()=>setShowCommentSection(prev => !prev)}>
+                    <div className="help_button_container" onClick={()=>setShowInfo('comment')}>
                         <button className="help_button" >
                             <CommentIcon className="help_button_icon"/>
                         </button>

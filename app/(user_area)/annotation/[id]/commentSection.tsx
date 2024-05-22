@@ -1,8 +1,9 @@
 import React, { ChangeEvent, useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
+import BasicBox from "@/app/(components)/basicBox";
 
 
-const CommentSection = ({commentContent, setCommentContent, setShowCommentSection}:{commentContent: string, setCommentContent:React.Dispatch<React.SetStateAction<string>>, setShowCommentSection:React.Dispatch<React.SetStateAction<boolean>>}) => {
+const CommentSection = ({commentContent, setCommentContent}:{commentContent: string, setCommentContent:React.Dispatch<React.SetStateAction<string>>}) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(()=>{
@@ -16,27 +17,11 @@ const CommentSection = ({commentContent, setCommentContent, setShowCommentSectio
     }
 
     return(
-        <div className="comment_section active">
-            <div className="comment_section_navigation_container">
-                <div className="comment_title_container">
-                    <div className="comment_tilte">Comment</div>
-                </div>
-                <div className="comment_close_container">
-                    <button className="comment_button" onClick={()=>setShowCommentSection(false)}>
-                        <CloseIcon className="comment_button_icon" />
-                    </button>
-                </div>
-            </div>
-            <div className="comment_content_container">
-
-                {loading?
-                <div>loading</div>:
+        <BasicBox title="Comment" classNames="comment_section" shortcut="C">
                 <div className="comment_field_container">
-                    <textarea id = 'comment_field' className="comment_field" value={commentContent} onChange={handleCommentInput}></textarea>
+                    <textarea id="comment_field" value={commentContent} onChange={handleCommentInput}></textarea>
                 </div>
-                }
-            </div>
-        </div>
+        </BasicBox>
     )
 }
 
