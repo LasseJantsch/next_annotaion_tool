@@ -44,7 +44,7 @@ const ProfileCard = ({ratios, count, user_name, nextAnnotationId}:{ratios:number
                 <div className="progress_bar">
                 {progress_bar_width.map((r, i ) => {
                     return(
-                        <div id ={`progress_bar_${i}`} className="progress_bar_element" style={{width: `${r}px`, backgroundColor: colors[i], boxShadow: `0 0 4px ${colors[i]}`, zIndex: ratios.length-i}}></div>
+                        <div key={i} id ={`progress_bar_${i}`} className="progress_bar_element" style={{width: `${r}px`, backgroundColor: colors[i], boxShadow: `0 0 4px ${colors[i]}`, zIndex: ratios.length-i}}></div>
                     )
                 })} 
                 </div>
@@ -54,7 +54,7 @@ const ProfileCard = ({ratios, count, user_name, nextAnnotationId}:{ratios:number
             <div className="progress_count_container">
                 {count.map((c, i) => {
                     return (
-                        <div id={`progress_count_element_${i}`} className="progress_count_element">
+                        <div key={i} id={`progress_count_element_${i}`} className="progress_count_element">
                             <div className="progress_count_number">{c}</div>
                             <div className="progress_count_indicator" style={{backgroundColor: colors[i]}}></div>
                             <div className="progress_count_description">{description[i]}</div>

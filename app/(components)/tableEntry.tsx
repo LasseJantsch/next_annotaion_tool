@@ -3,8 +3,7 @@ import Link from "next/link";
 import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import { usePathname } from 'next/navigation'
 
-const findColor = (status: string) => {
-    const pathname = usePathname()
+const findColor = (status: string, pathname:string) => {
     if (pathname.match(/review/)){
         return('#D9D9D9')
     }else { 
@@ -37,7 +36,7 @@ interface Props{
 
 const TextEntry = ({title, width}:{title:string, width:number}) => {
     return(
-        <div className="text_entry" style={{width: width}}>
+        <div key={`${title}_text_entry`} className="text_entry" style={{width: width}}>
             {title}
         </div>
     )
@@ -45,7 +44,7 @@ const TextEntry = ({title, width}:{title:string, width:number}) => {
 
 const StatusEntry = ({title, width, color}:{title:string, width:number, color:string}) => {
     return(
-        <div className="status_entry" style={{width: width}}>
+        <div key={`status_entry`} className="status_entry" style={{width: width}}>
             <div className="status_entry_indicator" style={{backgroundColor:color}}></div>
             <div className="status_entry_description">{title}</div>
         </div>
@@ -59,7 +58,7 @@ const IconEntry: React.FC<IconProps> = ({
     ...props
 }) => {
     return(
-        <div className={`icon_entry ${classNames}`} style={{width: width}}>
+        <div key={`icon_entry`} className={`icon_entry ${classNames}`} style={{width: width}}>
             {content&&<span className="icon_entry_content">{content}</span>}
             {props.children}
         </div>
@@ -68,7 +67,7 @@ const IconEntry: React.FC<IconProps> = ({
 
 const ActionEntry = ({title, width, link}:{title:string, width:number, link:string}) => {
     return(
-        <Link href={link} className="action_entry_link">
+        <Link key={`action_entry`} href={link} className="action_entry_link">
             <button className="action_entry" style={{width: width}}>{title}</button>
         </Link>
     )
@@ -80,20 +79,21 @@ const TableEntry: React.FC<Props> = ({
     columnSpecification,
     data,
 }) => {
+    const pathname = usePathname()
 
     return(
-        <div className="table_entry_container">
+        <div key={`${data[0]}_entry`} className="table_entry_container">
             {columnSpecification.map((s, i) => {
                 switch (s){
                     case 'text_entry':
-                        return(<TextEntry title={data[i]} width={columnWidth[i]}/>)
+                        return(<TextEntry key={i} title={data[i]} width={columnWidth[i]}/>)
                     case 'status_entry':
-                        return(<StatusEntry title={data[i]} width={columnWidth[i]} color={findColor(data[i])}/>)
+                        return(<StatusEntry key={i} title={data[i]} width={columnWidth[i]} color={findColor(data[i],pathname)}/>)
                     case 'icon_entry':
-                        return(<IconEntry classNames={data[i]&& 'active'} content={data[i]} width={columnWidth[i]}><ChatOutlinedIcon/></IconEntry>)
+                        return(<IconEntry key={i} classNames={data[i]&& 'active'} content={data[i]} width={columnWidth[i]}><ChatOutlinedIcon/></IconEntry>)
                     case 'action_entry':
                         const link = `/annotation/${data[i]}`
-                        return(<ActionEntry title={'edit'} width={columnWidth[i]} link={link}/>)
+                        return(<ActionEntry key={i} title={'edit'} width={columnWidth[i]} link={link}/>)
                 }
             })}
         </div>

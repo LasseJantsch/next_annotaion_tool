@@ -23,7 +23,7 @@ const Table: React.FC<Props> = ({
             <BasicBox title={title} classNames='table_header'>
                   {columnNames.map((n, i) => {
                     return(
-                        <TableHeaderElement title={n} width={columnWidth[i]}/>
+                        <TableHeaderElement key={i} title={n} width={columnWidth[i]}/>
                     )
                   })}
             </BasicBox>

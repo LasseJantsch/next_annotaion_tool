@@ -26,12 +26,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     const [citingPaper, setCitingPaper] = useState<Array<any>>([])
     const [targetPaper, setTargetPaper] = useState<Array<any>>([])
     const [citedPaper, setCitedPaper] = useState<Array<any>>([])
-    const [section_title, setSectionTitle] = useState<string>('')
-    const [citedTitle, setCitedTitle] = useState<string>()
-    const [citedPubYear, setCitedPubYear] = useState<number>()
-    const [citedAuthors, setCitedAuthors] = useState<string[]>()
-    const [citedAbstract, setCitedAbstract] = useState<string>()
-    const [citedDOI, setCitedDOI] = useState<string>()
+    const [sectionTitle, setSectionTitle] = useState<string>('')
+    const [showMoreInformation, setShowMoreInformation] = useState<boolean>(false)
+    const [sectionContent, setSectionContent] = useState<string[]>([])
+    const [refLocMapping, setRefLocMapping] = useState<any>()
 
     const [activeTool, setActiveTool] = useState('information')
     const [showInfo, setShowInfo] = useState<string>('info_card')
@@ -61,7 +59,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setLoading(true)
           const { data, error, status} = await supabase
             .from('annotations')
-            .select(`context_location, comment, refs (id, ref_loc, documents(title, authors, pub_year), paragraphs (text, section_title, documents(title, authors, pub_year), refs (documents(title, authors, pub_year))))`) //, cited_documents(documents('title', 'authors', 'pub_year))
+            .select(`context_location, comment, refs (id, ref_loc, documents(id, title, authors, pub_year), paragraphs (text, section_title, documents(id, title, authors, pub_year), refs (ref_loc, documents(id, title, authors, pub_year))))`)
             .eq('id', id)
             .single()
     
@@ -74,7 +72,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
-            console.log(data)
             const refs : any = (data as any).refs
             setAnnotationText(setTargetRef(refs.paragraphs.text, refs.ref_loc))
             setAnnotation(Array(refs.paragraphs.text.length).fill(0))
@@ -101,11 +98,38 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
 
 
       // get next annotation to work on
-      const getAnnotations = useCallback(async () => {
+      const getSectionContent = useCallback(async () => {
         try {
           setLoading(true)
-    
           const { data, error, status} = await supabase
+            .from('paragraphs')
+            .select(`text`)
+            .eq('doc_id', citingPaper[0]?.id)
+            .eq('section_title', sectionTitle)
+    
+          if (error && status !== 406) {
+            console.log(error)
+            throw error
+          }
+    
+          if (data) {
+           setSectionContent( data.map((p:any) => {
+            return p.text.split(';').join(' ')
+           }))
+          }
+        } catch (error) {
+          setError('Error loading section content!')
+        } finally {
+          setLoading(false)
+        }
+      }, [citingPaper, sectionTitle, supabase])
+
+    // get whole section content
+    const getAnnotations = useCallback(async () => {
+        try {
+            setLoading(true)
+    
+            const { data, error, status} = await supabase
             .from('annotations')
             .select(`id, status`)
             .eq('user_id', user?.id)
@@ -114,20 +138,20 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             .limit(1)
             .single()
     
-          if (error && status !== 406) {
+            if (error && status !== 406) {
             console.log(error)
             throw error
-          }
+            }
     
-          if (data) {
+            if (data) {
             setNextAnnotationElement(data.id)
-          }
+            }
         } catch (error) {
-          setError('Error loading outstanding Annotations data!')
+            setError('Error loading outstanding Annotations data!')
         } finally {
-          setLoading(false)
+            setLoading(false)
         }
-      }, [user, id, supabase])
+        }, [user, id, supabase])
 
       //update annotation information
       const updateAnnotation = async (status: string) => {
@@ -169,6 +193,26 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
       useEffect(() => {
         getAnnotations()
       }, [id, user, getAnnotations])
+
+      useEffect(()=>{
+        if (citingPaper && sectionTitle) {
+            getSectionContent()
+        }
+      }, [citingPaper, sectionTitle,])
+
+      useEffect(()=>{
+        if (citedPaper) {
+            const ref_mapping:any = {}
+            citedPaper.forEach((p:any)=>{
+                if (ref_mapping[p.ref_loc]){
+                    ref_mapping[p.ref_loc].push(p.id)
+                } else {
+                    ref_mapping[p.ref_loc]=[p.id]
+                }
+            })
+            setRefLocMapping(ref_mapping)
+        }
+      }, [citedPaper])
 
 
     //set unmount event listener
@@ -212,6 +256,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     break
                 case 'Space':
                     setShowInfo('info_card');
+                    document.getElementById('info_container')?.scrollTo({top: 0, behavior: 'smooth'})     
                     break
                 case 'KeyC':
                     setShowInfo('comment');
@@ -312,6 +357,18 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
         router.push('/')
     }
+    const handleRefClick = (target: string) => {
+        setShowInfo('info_card')
+        const ids = refLocMapping[target]
+        const target_elements = ids.map((id:string) =>document.getElementById(id))
+        const parent_element = target_elements[0].parentElement
+        target_elements.forEach((el:any, i:number) => {
+            i===0 && el.scrollIntoView({behavior:'smooth', block:'center'})
+            el.classList.add('active')})
+        setTimeout(()=>{
+            target_elements.forEach((el:any) => el.classList.remove('active'))
+        }, 1000)
+    }
 
     return (
         <div className="annotation_site_container" >
@@ -322,23 +379,27 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                     <AnnotationTools activeTool={activeTool} handleToolChange={setActiveTool} handleResetAnnotation={handleResetAnnotation}/>
                     <div className="annotation_text_container" onMouseUp={handleMark}>
                         <div className="annotation_text">
-                            {annotationText?.map((s,i) => <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} setShowInfo={setShowInfo}/>)}
+                            {annotationText?.map((s,i) =>{
+                            return(
+                                <AnnotationTextElement id={id} i={i} s={s} key={i} mark={annotation[i]} handleClick={handleRefClick}/>
+                            )
+                        })}
                         </div>
                     </div>
                     {showInfo === 'info_card' &&
-                    <div className="info_container">
+                    <div id="info_container" className="info_container">
                             <InfoCard 
                                 title ='Citing Paper'
                                 papers = {citingPaper}
-                                section = {section_title}
-                            />
-                            <InfoCard 
-                                title ='Target Citation'
-                                papers = {targetPaper}
+                                sectionTitle = {sectionTitle}
+                                sectionContent = {sectionContent}
+                                expanded = {showMoreInformation}
+                                handleExpand = {setShowMoreInformation}
                             />
                             <InfoCard 
                                 title ='Cited Papers'
                                 papers = {citedPaper}
+                                target = {targetPaper[0]?.id}
                             />
                     </div>}
                     {showInfo === 'comment' &&

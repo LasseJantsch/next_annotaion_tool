@@ -14,7 +14,7 @@ const TableHeaderElement: React.FC<Props> = ({
 }) => {
 
     return(
-        <div className={`table_header_element ${classNames}`} style={{width: `${width}px`}}>{title}</div>
+        <div key={`${title}_header_element`} className={`table_header_element ${classNames}`} style={{width: `${width}px`}}>{title}</div>
     )
 }
 

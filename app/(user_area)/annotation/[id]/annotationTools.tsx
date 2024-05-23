@@ -66,7 +66,7 @@ const AnnotationTools: React.FC<Props> = ({
                 {toolDescription.map((d, i) => {
                     const status = activeTool === d? true: false
                     return(
-                        <ToolButton active={status} title={d} color={toolColors[i]} shortcut={shortcuts[i]} handleClick={handleToolChange}>
+                        <ToolButton key={i} active={status} title={d} color={toolColors[i]} shortcut={shortcuts[i]} handleClick={handleToolChange}>
                             {d==='erase'? <BackspaceIcon style={{color: status ? '#fff': toolColors[i]}}/>: <EditIcon style={{color:false ?'#fff': toolColors[i]}}/>}
                         </ToolButton>
                     )

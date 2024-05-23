@@ -149,12 +149,13 @@ const Dashboard = ({ user }: { user: User | null }) => {
           <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`} nextAnnotationId = {nextAnnotationId}/>
           <Table title="Tasks" classNames="overview_table" columnNames={columnNames} columnWidth={columnWidth}>
             {annotationElements &&
-            annotationElements.map((el) => {
+            annotationElements.map((el, i) => {
               const id = el.id.substring(el.id.length - 7)
               const created_at = el.created_at.substring(0,10)
               const updated_at = el.updated_at.substring(0,16).replace('T', ' ')
               return(
                 <TableEntry 
+                  key={i}
                   columnWidth = {columnWidth}
                   columnSpecification = {columnSpecification}
                   data = {[id, el.status, el.comment, created_at, updated_at, el.id]}

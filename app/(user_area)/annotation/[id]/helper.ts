@@ -46,10 +46,11 @@ export const returnAuthorString = (authors:string) => {
 }
 
 export const unpackCitedPapers = (data: any) => {
-    console.log(data)
-    var res:Array<any> = []
+    var res:any = []
     data.forEach((r:any) => {
+        const loc = r.ref_loc
         r.documents.forEach((d: any) => {
+            d['ref_loc']=loc
             res.push(d)
         })
     });
