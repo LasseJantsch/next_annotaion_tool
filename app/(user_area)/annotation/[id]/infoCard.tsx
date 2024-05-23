@@ -1,48 +1,32 @@
 import React, { useEffect, useState } from "react";
-import CloseIcon from '@mui/icons-material/Close';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import BasicBox from "@/app/(components)/basicBox";
+import { returnAuthorString } from "./helper";
 
-const InfoCard = ({title, authors, pub_year, abstract, doi, setShowInfoCard}:{title:string, authors:string[], pub_year: number, abstract: string, doi:string, setShowInfoCard:React.Dispatch<React.SetStateAction<boolean>>}) => {
 
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        console.log(title, authors, pub_year)
-        if (title && authors && pub_year) {
-            setLoading(false)
-        }
-    }, [title, authors, pub_year, abstract, doi])
-    
+const InfoCard = ({title, papers, sectionTitle, sectionContent, target, expanded, handleExpand}:{title:string, papers:Array<any>, sectionTitle?:string, target?:string, sectionContent?:string[],expanded?:boolean, handleExpand?: any}) => {
     return(
-        <div id='info_card' className={"info_card active"}>
-            <div className="info_card_navigation_container">
-                <div className="info_more_container">
-                    <a href={doi} target="_blank">
-                        <button className="info_button">
-                            <OpenInNewIcon className="info_button_icon" />
-                        </button>
-                    </a>
-                </div>
-                <div className="info_close_container">
-                    <button className="info_button" onClick={()=>setShowInfoCard(false)}>
-                        <CloseIcon className="info_button_icon" />
-                    </button>
-                </div>
+        <BasicBox title={title} classNames="info_card active" shortcut="Space" expanded={expanded} handleExpand={handleExpand}>
+            <div className="info_card_content">
+                {papers.map((p: any, i:number) => {
+                    return(
+                        <div key={i} id={p.id} className={`info_card_element ${p.id===target&& 'target'}`}>
+                            <div className="info_card_element_title">{p.title}</div>
+                            <div className="info_card_element_meta">{`${p.pub_year} - ${returnAuthorString(p.authors)}`}</div>
+                            {sectionTitle && <div className="info_card_element_section_name">{`Section: ${sectionTitle}`}</div>}
+                            {sectionContent && expanded && 
+                            <div className="info_card_element_section_container">
+                                {sectionContent.map((c, i )=> {
+                                    return(
+                                        <div key={i} className="info_card_element_section_content">{c}</div>
+                                    )
+                                })}
+                            </div>    
+                            }
+                        </div>
+                    )
+                })}
             </div>
-            {loading?
-            <div>loading</div>:
-            <div className="info_content_container">
-                <div className="info_title_container">
-                    <div className="info_tilte">{title}</div>
-                </div>
-                <div className="info_meta_container">
-                    <div className="info_meta">{pub_year}: {authors.length < 4 ? authors.join(', '): authors[0] + ' et al.'}</div>
-                </div>
-                <div className="info_abstract_container">
-                    {/* <div className="info_abstract">{abstract}</div> */}
-                </div>
-            </div>}
-        </div>
+        </BasicBox>
     )
 }
 export default InfoCard

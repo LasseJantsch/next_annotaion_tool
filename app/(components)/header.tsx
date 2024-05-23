@@ -16,10 +16,8 @@ const Header = () => {
     const router = useRouter()
     
     if (pathname.match(/annotation/)){
-        var title = 'ANNOTATION'
         var showMenu = false
     }else { 
-        var title = 'OVERVIEW'
         var showMenu = true
     }
 
@@ -48,9 +46,6 @@ const Header = () => {
                 <button className={'menu_button'} onClick={handleBackClick}>
                     <ArrowBackIcon className="menu_icon"/>
                 </button>}
-            </div>
-            <div className="title_container">
-                <div className="title">{title}</div>
             </div>
             {menuOpen &&
             <>

@@ -35,3 +35,24 @@ export const setTargetRef = (text:string, loc:number) => {
         alert('Cant find target reference token')
     }
   }
+
+export const returnAuthorString = (authors:string) => {
+    const authors_arr = authors.split(' ,')
+    if (authors_arr.length > 2) {
+        return `${authors_arr[0]} et al.`
+    } else {
+        return authors_arr.join(', ')
+    }
+}
+
+export const unpackCitedPapers = (data: any) => {
+    var res:any = []
+    data.forEach((r:any) => {
+        const loc = r.ref_loc
+        r.documents.forEach((d: any) => {
+            d['ref_loc']=loc
+            res.push(d)
+        })
+    });
+    return res
+}

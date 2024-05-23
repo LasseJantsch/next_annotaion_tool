@@ -1,6 +1,6 @@
 import React from "react";
 
-const AnnotationTextElement = ({id, i, s, mark, setShowInfoCard}: {id: string, i: number, s: string, mark: number, setShowInfoCard: React.Dispatch<React.SetStateAction<boolean>>}) => {
+const AnnotationTextElement = ({id, i, s, mark, handleClick}: {id: string, i: number, s: string, mark: number, handleClick: any}) => {
     var classList = 'text'
     if (s.includes('TREF]')){
         classList += ' target'
@@ -24,7 +24,7 @@ const AnnotationTextElement = ({id, i, s, mark, setShowInfoCard}: {id: string, i
 
     return(
         <>
-            <span id={id + '_' + i} key={id + '_' + i} className={classList} onClick={()=>s.includes('REF]')&&setShowInfoCard(true)}>{s}</span>
+            <span id={id + '_' + i} className={classList} onClick={()=>s.includes('REF]')&&handleClick(i)}>{s}</span>
             <span id={id + '_' + i + '_filler'} className="filler"> </span>
         </>
     )
