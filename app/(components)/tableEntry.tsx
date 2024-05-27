@@ -5,7 +5,15 @@ import { usePathname } from 'next/navigation'
 
 const findColor = (status: string, pathname:string) => {
     if (pathname.match(/review/)){
-        return('#D9D9D9')
+        if (status === 'null') {
+            return('#D9D9D9')
+        } else if (parseFloat(status) < 0.6) {
+            return('#FF0000')
+        } else if (parseFloat(status) < 0.8) {
+            return('#FFAE34')
+        }else {
+            return('#00D416')
+        }
     }else { 
         switch (status) {
             case 'annotated':
@@ -88,11 +96,12 @@ const TableEntry: React.FC<Props> = ({
                     case 'text_entry':
                         return(<TextEntry key={i} title={data[i]} width={columnWidth[i]}/>)
                     case 'status_entry':
-                        return(<StatusEntry key={i} title={data[i]} width={columnWidth[i]} color={findColor(data[i],pathname)}/>)
+                        return(<StatusEntry key={i} title={data[i]} width={columnWidth[i]} color={findColor(String(data[i]),pathname)}/>)
                     case 'icon_entry':
                         return(<IconEntry key={i} classNames={data[i]&& 'active'} content={data[i]} width={columnWidth[i]}><ChatOutlinedIcon/></IconEntry>)
                     case 'action_entry':
-                        const link = `/annotation/${data[i]}`
+                        if (pathname.match(/review/)){var link = `/review/${data[i]}`}
+                        else {var link = `/annotation/${data[i]}`}
                         return(<ActionEntry key={i} title={'edit'} width={columnWidth[i]} link={link}/>)
                 }
             })}

@@ -5,23 +5,23 @@ import IconButton from "./iconButton";
 import EastIcon from '@mui/icons-material/East';
 
 
-const ProfileCard = ({ratios, count, user_name, nextAnnotationId}:{ratios:number[], count:number[], user_name:string, nextAnnotationId:string}) => {
+const ProfileCard = ({ratios, count, user_name, nextId}:{ratios:number[], count:number[], user_name:string, nextId?:string}) => {
 
     const pathname = usePathname()
 
     if (pathname.match(/review/)){
         var colors:string[] = ['']
         var description:string[] = ['']
-        if (nextAnnotationId) {
-            var nextElementLink = `/review/${nextAnnotationId}`
+        if (nextId) {
+            var nextElementLink = `/review/${nextId}`
         } else {
             var nextElementLink = ''
         }
     }else { 
         var colors:string[] = ['#00D416', '#FFAE34', '#D9D9D9']
         var description:string[] = ['Annotated', 'Skipped', 'Outstanding']
-        if (nextAnnotationId) {
-        var nextElementLink = `/annotation/${nextAnnotationId}`
+        if (nextId) {
+        var nextElementLink = `/annotation/${nextId}`
         } else {
             var nextElementLink = ''
         }
@@ -63,9 +63,11 @@ const ProfileCard = ({ratios, count, user_name, nextAnnotationId}:{ratios:number
                 })}
             </div>
         </div>
+            {nextId &&
             <IconButton title='Start Annotation' classNames ='start_annotation_button' link={nextElementLink}>
                 <EastIcon />
             </IconButton>
+            }
     </BasicBox>
     )
 }
