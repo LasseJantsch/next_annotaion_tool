@@ -172,9 +172,10 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
               {!loading &&
               <div className="work_area_container">
                   <div className="info_container">
-                    {commentContents.map((commentContent:any) => {
+                    {commentContents.map((commentContent:any, i:number) => {
                       return(
                        <CommentSection 
+                        key={i}
                         name = {commentContent.name}
                         id = {commentContent.id}
                         setActiveAnnotation = {setActiveAnnotation}
