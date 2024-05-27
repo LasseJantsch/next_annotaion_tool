@@ -670,6 +670,9 @@ button svg{
   width: 350px;
   margin-top: 10px;
 }
+.comment_section:disabled{
+  pointer-events: none;
+}
 .comment_field_container{
   display: flex;
   flex-direction: column;

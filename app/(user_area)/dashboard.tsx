@@ -146,7 +146,7 @@ const Dashboard = ({ user }: { user: User | null }) => {
     return(
       <div id="overview_contatiner">
         {error && <ErrorBanner message={error} setError={setError}/>}
-          <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`} nextAnnotationId = {nextAnnotationId}/>
+          <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`} nextId = {nextAnnotationId}/>
           <Table title="Tasks" classNames="overview_table" columnNames={columnNames} columnWidth={columnWidth}>
             {annotationElements &&
             annotationElements.map((el, i) => {

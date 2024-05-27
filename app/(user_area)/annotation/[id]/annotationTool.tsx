@@ -4,13 +4,13 @@ import QuestionMarkTwoToneIcon from '@mui/icons-material/QuestionMarkTwoTone';
 import KeyboardDoubleArrowLeftTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowLeftTwoTone';
 import KeyboardDoubleArrowRightTwoToneIcon from '@mui/icons-material/KeyboardDoubleArrowRightTwoTone';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
-import InfoCard from "./infoCard";
-import { getSelectedIds, setTargetRef, unpackCitedPapers } from "./helper";
-import AnnotationTextElement from "./annotationTextElement";
+import InfoCard from "../../../(components)/infoCard";
+import { getSelectedIds, setTargetRef, unpackCitedPapers } from "../../../(helpers)/helper";
+import AnnotationTextElement from "../../../(components)/annotationTextElement";
 import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation'
-import CommentSection from "./commentSection";
+import CommentSection from "../../../(components)/commentSection";
 import CommentIcon from '@mui/icons-material/Comment';
 import GuidelineElement from "./guidelineElement";
 import ErrorBanner from "../../../(components)/errorBanner";
@@ -113,6 +113,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
+            console.log(data)
            setSectionContent( data.map((p:any) => {
             return p.text.split(';').join(' ')
            }))

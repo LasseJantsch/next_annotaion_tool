@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import BasicBox from "@/app/(components)/basicBox";
-import { returnAuthorString } from "./helper";
+import { returnAuthorString } from "../(helpers)/helper";
 
 
 const InfoCard = ({title, papers, sectionTitle, sectionContent, target, expanded, handleExpand}:{title:string, papers:Array<any>, sectionTitle?:string, target?:string, sectionContent?:string[],expanded?:boolean, handleExpand?: any}) => {
