@@ -6,6 +6,7 @@ import { type User } from '@supabase/supabase-js'
 import ErrorBanner from "../(components)/errorBanner";
 import ProfileCard from "../(components)/profileCard";
 import Table from "../(components)/table";
+import SummaryStatistics from "../(components)/summaryStatistics";
 
 const Dashboard = ({ user }: { user: User | null }) => {
     const supabase = createClient()

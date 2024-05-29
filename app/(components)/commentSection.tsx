@@ -3,8 +3,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import BasicBox from "@/app/(components)/basicBox";
 
 
-const CommentSection = ({commentContent, name, id, setActiveAnnotation, setCommentContent}:{commentContent: string, name?:string, id?:string, setActiveAnnotation?:React.Dispatch<React.SetStateAction<string>>, setCommentContent?:React.Dispatch<React.SetStateAction<string>>}) => {
-    const [loading, setLoading] = useState(true)
+const CommentSection = ({commentContent, name, id, activeAnnotation, setActiveAnnotation, setCommentContent}:{commentContent: string, name?:string, id?:string, activeAnnotation?:string, setActiveAnnotation?:React.Dispatch<React.SetStateAction<string>>, setCommentContent?:React.Dispatch<React.SetStateAction<string>>}) => {
+    const [loading, setLoading] = useState(true) 
 
     useEffect(()=>{
         if (true) {
@@ -21,7 +21,7 @@ const CommentSection = ({commentContent, name, id, setActiveAnnotation, setComme
 
 
     return(
-        <BasicBox id={id? id: 'comment_section'} title={name? name :"Comment"} classNames="comment_section" shortcut="C" onClick={handleClick}>
+        <BasicBox id={'comment_section'} title={name? name :"Comment"} classNames={`comment_section`} shortcut="C" onClick={(e:any) => handleClick(e)}>
                 <div className="comment_field_container">
                     <textarea id="comment_field" value={commentContent} disabled={setCommentContent? false: true} onChange={handleCommentInput}></textarea>
                 </div>

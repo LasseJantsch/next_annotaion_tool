@@ -15,7 +15,7 @@ const Header = () => {
     const pathname = usePathname()
     const router = useRouter()
     
-    if (pathname.match(/annotation/)){
+    if (pathname.match(/annotation/) || pathname.match('\/review\/.*')){
         var showMenu = false
     }else { 
         var showMenu = true
@@ -25,7 +25,11 @@ const Header = () => {
         setMenuOpen(!menuOpen)
     }
     const handleBackClick = () => {
-        window.location.replace("/")
+        if(pathname.match('\/review\/.*')){
+            window.location.replace('/review')
+        } else {
+            window.location.replace("/")
+        }
     }
 
     const handleSignOut = async () => {
