@@ -7,6 +7,7 @@ import { type User } from '@supabase/supabase-js'
 import { createClient } from "@/utils/supabase/client";
 import CommentSection from "@/app/(components)/commentSection";
 import ErrorBanner from "@/app/(components)/errorBanner";
+import BasicBox from "@/app/(components)/basicBox";
 
 
 const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
@@ -35,6 +36,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
   const [error, setError] = useState<string>('')
 
   const [commentContents, setCommentContents] = useState<any[]>([])
+  const [interAnnotationAgreement, setInterAnnotatioAgreement] = useState<number[]>([])
 
   const [annotation, setAnnotation] = useState<Array<number>>([])
   const [annotations, setAnnotations] = useState<any>([])
@@ -48,7 +50,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         setLoading(true)
         const { data, error, status} = await supabase
           .from('refs')
-          .select(`id, ref_loc, documents(id, title, authors, pub_year), paragraphs (text, section_title, documents(id, title, authors, pub_year), refs (ref_loc, documents(id, title, authors, pub_year))), annotations(id, context_location, comment, users(first_name, last_name))`)
+          .select(`id, ref_loc, iaa_total1, iaa_total2, iaa_inf, iaa_perc, iaa_back, documents(id, title, authors, pub_year), paragraphs (text, section_title, documents(id, title, authors, pub_year), refs (ref_loc, documents(id, title, authors, pub_year))), annotations(id, context_location, comment, users(first_name, last_name))`)
           .eq('id', id)
           .single()
   
@@ -69,6 +71,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           setCitingPaper([refs.paragraphs.documents])
           setCitedPaper(unpackCitedPapers(refs.paragraphs.refs))
           setSectionTitle(refs.paragraphs.section_title)
+          setInterAnnotatioAgreement([refs.iaa_total1, refs.iaa_total2, refs.iaa_inf, refs.iaa_perc, refs.iaa_back])
           if (refs.annotations) {
               let anns: any = {}
               let comms: any[] = []
@@ -165,22 +168,38 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
       }, 1000)
   }
 
+
+  const handleClickAnnotation = (e:any) => {
+      setActiveAnnotation(e.target.id)
+  }
+
+  const findColor = (v:number) => {
+    if (v === null) {
+      return '#adadad'
+    } else if (v < 0.6) {
+      return '#FF0000'
+    } else if (v<0.8) {
+      return '#FFAE34'
+    } else {
+      return'#00D416'
+    }
+  }
     return (
       <div className="annotation_site_container" >
           {error && <ErrorBanner message={error} setError={setError}/>}
+          {!loading &&
           <div className="annotation_container">
-              {!loading &&
               <div className="work_area_container">
                   <div className="info_container">
                     {commentContents.map((commentContent:any, i:number) => {
                       return(
-                       <CommentSection 
+                       <BasicBox 
                         key={i}
-                        name = {commentContent.name}
+                        title = {commentContent.name}
                         id = {commentContent.id}
-                        setActiveAnnotation = {setActiveAnnotation}
-                        commentContent = {commentContent.comment}
-                      />)
+                        classNames={`comment_section ${activeAnnotation===commentContent.id && 'active'}`}
+                        onClick = {handleClickAnnotation}
+                      ><div id={commentContent.id} className="comment_section_content" >{commentContent.comment? commentContent.comment: 'no comment'}</div></BasicBox>)
                     })}
                   </div>
                   <div className="annotation_text_container">
@@ -207,9 +226,47 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                               target = {targetPaper[0]?.id}
                           />
                   </div>
+                  
               </div>
-              }
-          </div>
+            <div className="navigation_container">
+              <BasicBox 
+                classNames="iaa_container"
+                title="Inter Annotation Agreement"
+              >
+                <div className="total_iaa">
+                  <div className="total_iaa_description">Total 1:</div>
+                  <div className="total_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[0])}}></div>
+                  <div className="total_iaa_value">{interAnnotationAgreement[0]}</div>
+                </div>
+                <div className="total_iaa">
+                  <div className="total_iaa_description">Total 2:</div>
+                  <div className="total_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[1])}}></div>
+                  <div className="total_iaa_value">{interAnnotationAgreement[1]}</div>
+                </div>
+                <div className="detail_iaa">
+                  <div className="detail_iaa_description">Information Scope:</div>
+                  <div className="detail_iaa_value_container">
+                    <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[2])}}></div>
+                    <div className="detail_iaa_value">{interAnnotationAgreement[2]}</div>
+                  </div>
+                </div>
+                <div className="detail_iaa">
+                  <div className="detail_iaa_description">Perception Scope:</div>
+                  <div className="detail_iaa_value_container">
+                    <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[3])}}></div>
+                    <div className="detail_iaa_value">{interAnnotationAgreement[3]}</div>
+                  </div>
+                </div>
+                <div className="detail_iaa">
+                  <div className="detail_iaa_description">Background Scope:</div>
+                  <div className="detail_iaa_value_container">
+                    <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[4])}}></div>
+                    <div className="detail_iaa_value">{interAnnotationAgreement[4]}</div>
+                  </div>
+                </div>
+              </BasicBox>
+            </div>
+          </div>}
       </div>
   )
 }

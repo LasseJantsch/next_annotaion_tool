@@ -61,12 +61,16 @@ button svg{
   position: relative;
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
   border: 1px solid #262424;
   border-radius: 10px;
   background-color: #ffffff;
   padding: 15px 0 10px 0;
   box-shadow: 0 0 4px #00000025;
+}
+.basic_border_box.active{
+  box-shadow: 0 0 4px #000000;
 }
 .basic_border_box_title {
   position: absolute;
@@ -96,6 +100,10 @@ button svg{
 .basic_border_box_content{
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px 0 10px;
+  width: 100%;
 }
 .basic_border_box_expand{
   position: absolute;
@@ -542,7 +550,8 @@ button svg{
 .info_container {
   display:flex;
   flex-direction: column;
-  width: 350px;
+  width: 360px;
+  padding: 0px 10px 0px 10px;
   max-height: 100%;
   overflow-x:hidden;
   overflow-y: auto;
@@ -677,8 +686,15 @@ button svg{
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: start;
   width: 100%;
-  height: 200px;
+  min-height: 50px;
+  max-height: 200px;
+}
+.comment_section_content{
+  text-align: start;
+  margin: 0 10px 0 10px;
+  width: 100%;
 }
 #comment_field {
   width: 320px;
@@ -823,3 +839,51 @@ button svg{
   pointer-events: none;
 }
 
+.iaa_container{
+  display: flex;
+  width: 650px;
+  flex-direction: row;
+}
+.total_iaa{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 20px;
+}
+.total_iaa_description{
+  font-size: 12px;
+  font-weight: bold;
+}
+.total_iaa_indicator{
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  margin: 0 10px 0 10px;
+}
+.total_iaa_value{
+  font-size: 14px;
+}
+
+.detail_iaa{
+  display: flex;
+  flex-direction: column;
+  margin-right: 20px;
+}
+.detail_iaa_description{
+  font-size: 10px;
+  font-weight: bold;
+}
+.detail_iaa_value_container{
+  display: flex;
+  flex-direction: row;
+  padding: 2px 0 0 0;
+}
+.detail_iaa_indicator{
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  margin: 0 10px 0 10px;
+}
+.detail_iaa_value{
+  font-size: 10px;
+}

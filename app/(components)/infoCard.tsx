@@ -5,7 +5,7 @@ import { returnAuthorString } from "../(helpers)/helper";
 
 const InfoCard = ({title, papers, sectionTitle, sectionContent, target, expanded, handleExpand}:{title:string, papers:Array<any>, sectionTitle?:string, target?:string, sectionContent?:string[],expanded?:boolean, handleExpand?: any}) => {
     return(
-        <BasicBox title={title} classNames="info_card active" shortcut="Space" expanded={expanded} handleExpand={handleExpand}>
+        <BasicBox title={title} classNames="info_card" shortcut="Space" expanded={expanded} handleExpand={handleExpand}>
             <div className="info_card_content">
                 {papers.map((p: any, i:number) => {
                     return(

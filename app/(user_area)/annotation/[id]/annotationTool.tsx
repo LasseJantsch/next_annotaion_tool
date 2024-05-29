@@ -362,7 +362,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         setShowInfo('info_card')
         const ids = refLocMapping[target]
         const target_elements = ids.map((id:string) =>document.getElementById(id))
-        const parent_element = target_elements[0].parentElement
         target_elements.forEach((el:any, i:number) => {
             i===0 && el.scrollIntoView({behavior:'smooth', block:'center'})
             el.classList.add('active')})
