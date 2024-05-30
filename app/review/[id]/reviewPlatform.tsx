@@ -230,7 +230,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
               </div>
             <div className="navigation_container">
               <BasicBox 
-                classNames="iaa_container"
+                classNames="platform_iaa_container"
                 title="Inter Annotation Agreement"
               >
                 <div className="total_iaa">
@@ -243,21 +243,21 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                   <div className="total_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[1])}}></div>
                   <div className="total_iaa_value">{interAnnotationAgreement[1]}</div>
                 </div>
-                <div className="detail_iaa">
+                <div className="detail_iaa col">
                   <div className="detail_iaa_description">Information Scope:</div>
                   <div className="detail_iaa_value_container">
                     <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[2])}}></div>
                     <div className="detail_iaa_value">{interAnnotationAgreement[2]}</div>
                   </div>
                 </div>
-                <div className="detail_iaa">
+                <div className="detail_iaa col">
                   <div className="detail_iaa_description">Perception Scope:</div>
                   <div className="detail_iaa_value_container">
                     <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[3])}}></div>
                     <div className="detail_iaa_value">{interAnnotationAgreement[3]}</div>
                   </div>
                 </div>
-                <div className="detail_iaa">
+                <div className="detail_iaa col">
                   <div className="detail_iaa_description">Background Scope:</div>
                   <div className="detail_iaa_value_container">
                     <div className="detail_iaa_indicator" style={{backgroundColor:findColor(interAnnotationAgreement[4])}}></div>

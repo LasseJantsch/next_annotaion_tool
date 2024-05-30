@@ -6,33 +6,29 @@ import { type User } from '@supabase/supabase-js'
 import ErrorBanner from "../(components)/errorBanner";
 import ProfileCard from "../(components)/profileCard";
 import Table from "../(components)/table";
-import SummaryStatistics from "../(components)/summaryStatistics";
 
-const Dashboard = ({ user }: { user: User | null }) => {
+const AnnotationDashboard = ({ user }: { user: User | null }) => {
     const supabase = createClient()
     const [progressRatio, setProgressRatio] = useState<number[]>([])
     const [progressCounts, setProgressCounts] = useState<number[]>([])
-    const columnNames = ['ID', 'Count','IAA t1','IAA t2', 'IAA inf', 'IAA perc', 'IAA back','Created at', '']
-    const columnWidth = [100, 50, 80, 80, 80, 80, 80, 120, 70]
-    const columnSpecification = ['text_entry', 'text_entry','status_entry','status_entry','status_entry','status_entry','status_entry', 'text_entry', 'action_entry']
+    const columnNames = ['ID', 'Status','Comment','Created at', 'Updated at', '']
+    const columnWidth = [100, 140, 100, 130, 150, 70]
+    const columnSpecification = ['text_entry', 'status_entry','icon_entry', 'text_entry', 'text_entry', 'action_entry']
     const [profileLoading, setProfileLoading] = useState<boolean>()
     const [annLoading, setAnnLoading] = useState<boolean>()
     const [firstName, setFirstName] = useState<string>()
     const [lastName, setLastName] = useState<string>()
 
-    const [referenceElements, setReferenceElements] = useState<annotationElement[]>()
-    const [nextReferenceId, setNextReferenceId] = useState<string>('')
+    const [annotationElements, setAnnotationElements] = useState<annotationElement[]>()
+    const [nextAnnotationId, setNextAnnotationId] = useState<string>('')
     const [error, setError] = useState<string>('')
 
     type annotationElement = {
       id: string,
-      annotation_count: number,
-      iaa_total1: number,
-      iaa_total2: number,
-      iaa_inf: number,
-      iaa_perc: number,
-      iaa_back: number,
+      status:string,
+      comment: string,
       created_at: string,
+      updated_at: string,
     }
 
     const getProfile = useCallback(async () => {
@@ -60,12 +56,13 @@ const Dashboard = ({ user }: { user: User | null }) => {
       }
     }, [user, supabase])
     
-    const getReferences = useCallback(async () => {
+    const getAnnotations = useCallback(async () => {
       try {
+        setAnnLoading(true)
         const { data, error, status } = await supabase
-          .from('refs')
-          .select('id, annotation_count, iaa_total1, iaa_total2, iaa_inf, iaa_perc, iaa_back, created_at')
-          .gte('annotation_count', 1)
+          .from('annotations')
+          .select('id, status, comment, created_at, updated_at')
+          .eq('user_id', user?.id)
   
         if (error && status !== 406) {
           console.log(error)
@@ -73,8 +70,9 @@ const Dashboard = ({ user }: { user: User | null }) => {
         }
   
         if (data) {
-          console.log(data)
-          setReferenceElements(data)
+          setAnnotationElements(data)
+          const next_element = data.find(el => el.status==='outstanding')
+          next_element && setNextAnnotationId(next_element.id as string)
         }
       } catch (error) {
         setError('Error loading ann data!')
@@ -82,15 +80,57 @@ const Dashboard = ({ user }: { user: User | null }) => {
         setAnnLoading(false)
       }
     }, [user, supabase])
+
+    const getAnnotationProgress = useCallback(async () => {
+      try {
+        setAnnLoading(true)
+        const { data, error, status } = await supabase
+        .from('progress_count')
+        .select()
+        .eq('user_id', user?.id)
+  
+  
+        if (error && status !== 406) {
+          console.log(error)
+          throw error
+        }
+  
+        if (data) {
+          var annotated = 0, skipped = 0, outstanding = 0          
+          data.forEach(status => {
+            switch (status.status) {
+              case 'annotated':
+                annotated = status.count
+                break
+              case 'skipped':
+                skipped = status.count
+                break
+              case 'outstanding':
+                outstanding = status.count
+            }
+          })
+          setProgressCounts([annotated, skipped, outstanding])
+        }
+      } catch (error) {
+        setError('Error loading Annotation Progress data!')
+      } finally {
+        setAnnLoading(false)
+      }
+    }, [user, supabase])
+
+
     
     useEffect(() => {
       getProfile()
     }, [user, getProfile])
 
     useEffect(() => {
-      getReferences()
-      console.log(referenceElements)
-    }, [user, getReferences])
+      getAnnotations()
+    }, [user, getAnnotations])
+
+    useEffect(() => {
+      getAnnotationProgress()
+    }, [user, getAnnotationProgress])
 
     useEffect(() => {
       if (progressCounts) {
@@ -106,18 +146,19 @@ const Dashboard = ({ user }: { user: User | null }) => {
     return(
       <div id="overview_contatiner">
         {error && <ErrorBanner message={error} setError={setError}/>}
-          <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`}/>
+          <ProfileCard ratios={progressRatio} count = {progressCounts} user_name={`${firstName} ${lastName}`} nextId = {nextAnnotationId}/>
           <Table title="Tasks" classNames="overview_table" columnNames={columnNames} columnWidth={columnWidth}>
-            {referenceElements &&
-            referenceElements.map((el, i) => {
+            {annotationElements &&
+            annotationElements.map((el, i) => {
               const id = el.id.substring(el.id.length - 7)
               const created_at = el.created_at.substring(0,10)
+              const updated_at = el.updated_at.substring(0,16).replace('T', ' ')
               return(
                 <TableEntry 
                   key={i}
                   columnWidth = {columnWidth}
                   columnSpecification = {columnSpecification}
-                  data = {[id, el.annotation_count, el.iaa_total1, el.iaa_total2, el.iaa_inf, el.iaa_perc, el.iaa_back, created_at, el.id]}
+                  data = {[id, el.status, el.comment, created_at, updated_at, el.id]}
                 />
               );
             })}
@@ -126,4 +167,4 @@ const Dashboard = ({ user }: { user: User | null }) => {
     )
 }
 
-export default Dashboard
+export default AnnotationDashboard
