@@ -37,6 +37,9 @@ export const setTargetRef = (text:string, loc:number) => {
   }
 
 export const returnAuthorString = (authors:string) => {
+    if (!authors){
+        return('unknown authors')
+    }
     const authors_arr = authors.split(' ,')
     if (authors_arr.length > 2) {
         return `${authors_arr[0]} et al.`
