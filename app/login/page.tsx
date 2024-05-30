@@ -18,7 +18,7 @@ export default function LoginPage() {
       <BasicBox title='LOGIN' classNames='login_container'>
         <form>
           <div className='login_input_container'>
-            <label htmlFor="email">usernam:</label>
+            <label htmlFor="email">username:</label>
             <input id="email" name="email" type="email" required />
           </div>
           <div className='login_input_container'>
