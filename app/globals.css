@@ -37,7 +37,7 @@ button svg{
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: inherit;
+  width: fit-content;
   height: 36px;
   padding: 0px 16px 0px;
 }
@@ -363,6 +363,7 @@ button svg{
 }
 .start_annotation_button {
   position: absolute;
+  left: 30px;
   bottom: -18px;
   background-color: #339649;
   box-shadow:0 0 4px #339649;
