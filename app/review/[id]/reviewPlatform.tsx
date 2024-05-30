@@ -199,7 +199,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                         id = {commentContent.id}
                         classNames={`comment_section ${activeAnnotation===commentContent.id && 'active'}`}
                         onClick = {handleClickAnnotation}
-                      ><div id={commentContent.id} className="comment_section_content" >{commentContent.comment? commentContent.comment: 'no comment'}</div></BasicBox>)
+                      ><div id={commentContent.id} className="comment_section_content" style={{color: commentContent.comment? 'black': '#adadad'}}>{commentContent.comment? commentContent.comment: 'no comment'}</div></BasicBox>)
                     })}
                   </div>
                   <div className="annotation_text_container">

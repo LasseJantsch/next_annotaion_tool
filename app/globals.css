@@ -70,7 +70,8 @@ button svg{
   box-shadow: 0 0 4px #00000025;
 }
 .basic_border_box.active{
-  box-shadow: 0 0 4px #000000;
+  border: 1px solid #ff0000;
+  box-shadow: 0 0 4px #ff000050;
 }
 .basic_border_box_title {
   position: absolute;
