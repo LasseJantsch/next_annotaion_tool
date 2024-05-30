@@ -37,6 +37,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
 
     const [loading, setLoading] = useState<boolean>(true)
     const [uploading, setUploading] = useState<boolean>(false)
+    const [successfullyUploaded, setSuccessfullyUploaded] = useState<boolean>(false)
     const [unsafedChanges, setUnsafedChanges] = useState(false)
 
     const [nextAnnotationElement, setNextAnnotationElement] = useState<string>()
@@ -156,23 +157,25 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
 
       //update annotation information
       const updateAnnotation = async (status: string) => {
+        var success = false
         try {
             setUploading(true)
             if (status === 'annotated') {
-                if (annotation.length === 0){
+                if (annotation.every(i=>i===0)){
                     throw new Error('There is nothing annotated')
-                }
+                } else {
                 const { error } = await supabase
                         .from('annotations')
                         .update({status: status, context_location: annotation, comment: commentContent})
                         .eq('id', id)
-                if(error){throw error}
+                if(error){throw error} else {success = true}
+                }
             } else if (status === 'skipped') {
                 const { error } = await supabase
                 .from('annotations')
                 .update({status: status, comment: commentContent})
                 .eq('id', id)
-                if(error){throw error}
+                if(error){throw error} else {success=true}
             } else {
                throw new Error('Something went wrong')
             }
@@ -180,9 +183,14 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         } catch (error) {
             console.log(error)
             setError('Error uploading Annotations!')
+            return
         } finally {
             setUploading(false)
             if (status === 'annotated') {setUnsafedChanges(false)}
+            if(success){
+                nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
+                router.push('/')    
+            }
         }
       }
 
@@ -350,13 +358,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
             return
         }
         updateAnnotation('skipped')
-        nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
-        router.push('/')
     }
     const handleSub = () => {
         updateAnnotation('annotated')
-        nextAnnotationElement ? router.push('/annotation/' + nextAnnotationElement):
-        router.push('/')
     }
     const handleRefClick = (target: string) => {
         setShowInfo('info_card')

@@ -50,11 +50,19 @@ const TextEntry = ({title, width}:{title:string, width:number}) => {
     )
 }
 
-const StatusEntry = ({title, width, color}:{title:string, width:number, color:string}) => {
+const NumberEntry = ({title, width}:{title:string, width:number}) => {
     return(
-        <div key={`status_entry`} className="status_entry" style={{width: width}}>
+        <div key={`${title}_number_entry`} className="number_entry" style={{width: width}}>
+            {title}
+        </div>
+    )
+}
+
+const StatusEntry = ({title, width, color, classNames}:{title:string, width:number, color:string, classNames?:string}) => {
+    return(
+        <div key={`status_entry`} className={`status_entry ${classNames}`} style={{width: width}}>
             <div className="status_entry_indicator" style={{backgroundColor:color}}></div>
-            <div className="status_entry_description">{title}</div>
+            <div className="status_entry_description">{title!==null?title:'-'}</div>
         </div>
     )
 }
@@ -95,8 +103,12 @@ const TableEntry: React.FC<Props> = ({
                 switch (s){
                     case 'text_entry':
                         return(<TextEntry key={i} title={data[i]} width={columnWidth[i]}/>)
+                    case 'number_entry':
+                        return(<NumberEntry key={i} title={data[i]} width={columnWidth[i]}/>)
                     case 'status_entry':
                         return(<StatusEntry key={i} title={data[i]} width={columnWidth[i]} color={findColor(String(data[i]),pathname)}/>)
+                    case 'status_entry_s':
+                        return(<StatusEntry key={i} title={data[i]} width={columnWidth[i]} color={findColor(String(data[i]),pathname)} classNames="small"/>)
                     case 'icon_entry':
                         return(<IconEntry key={i} classNames={data[i]&& 'active'} content={data[i]} width={columnWidth[i]}><ChatOutlinedIcon/></IconEntry>)
                     case 'action_entry':

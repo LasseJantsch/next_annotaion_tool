@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
-import Dashboard from './dashboard'
+
 import { redirect } from 'next/navigation'
+import AnnotationDashboard from './annotationDashboard'
 
 
 export default async function Account() {
@@ -13,5 +14,5 @@ export default async function Account() {
   !user && redirect('/login')
 
 
-  return <Dashboard user={user} />
+  return <AnnotationDashboard user={user} />
 }
