@@ -26,12 +26,13 @@ export const range = (start: number , end: number, filler: boolean) => {
 
       
 export const setTargetRef = (text:string, loc:number) => {
-    const res: string[] = text.split(';')
-    if(res[loc].includes('REF]')) {
-        res[loc] = res[loc].slice(0, res[loc].indexOf('R')) + 'T' + res[loc].slice(res[loc].indexOf('R'))
+    const res: any = text.match(/(?:<ref[^\>]+>(?:[^\<])+<\/ref>|[^;]+)/gm)
+    if(res[loc].includes('<ref type')) {
+        res[loc] = res[loc].slice(0, res[loc].indexOf('r')) + 't' + res[loc].slice(res[loc].indexOf('r'))
+        res[loc] = res[loc].slice(0, res[loc].indexOf('ref>')) + 't' + res[loc].slice(res[loc].indexOf('ref>'))
         return res
     } else {
-        console.log(res[loc])
+        console.log(res, loc)
         alert('Cant find target reference token')
     }
   }
@@ -56,6 +57,9 @@ export const unpackCitedPapers = (data: any) => {
             d['ref_loc']=loc
             res.push(d)
         })
+    });
+    res = res.sort(function(a: any,b:any) {
+        return a.ref_loc - b.ref_loc 
     });
     return res
 }
