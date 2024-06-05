@@ -74,8 +74,9 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
     
           if (data) {
             const refs : any = (data as any).refs
-            setAnnotationText(setTargetRef(refs.paragraphs.text, refs.ref_loc))
-            setAnnotation(Array(refs.paragraphs.text.length).fill(0))
+            const annotation_text = setTargetRef(refs.paragraphs.text, refs.ref_loc)
+            setAnnotationText(annotation_text)
+            setAnnotation(Array(annotation_text.length).fill(0))
             setTargetPaper(refs.documents)
             setCitingPaper([refs.paragraphs.documents])
             setCitedPaper(unpackCitedPapers(refs.paragraphs.refs))
@@ -114,7 +115,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
           }
     
           if (data) {
-            console.log(data)
            setSectionContent( data.map((p:any) => {
             return p.text.split(';').join(' ')
            }))
@@ -314,7 +314,6 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
         }
     }, [activeTool])
 
-
     // Event Handle functions
 
     const handleResetAnnotation = (tool:string) => {
@@ -403,7 +402,7 @@ const AnnotationTool = ({user, params}: {user: User | null, params: any}) => {
                             <InfoCard 
                                 title ='Cited Papers'
                                 papers = {citedPaper}
-                                target = {targetPaper[0]?.id}
+                                target = {targetPaper.map((p:any) => p.id)}
                             />
                     </div>}
                     {showInfo === 'comment' &&

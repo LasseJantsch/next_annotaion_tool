@@ -568,8 +568,30 @@ button svg{
   cursor: pointer;
 }
 .annotation_text .target{
+  position: relative;
   background-color: #ff000089 !important;
   border-radius: 5px;
+}
+.target_annotation_marker{
+  position:absolute;
+  display: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  right: -3px;
+  top: -4px;
+}
+.marked.info .target_annotation_marker{
+  display: block;
+  background-color: #00ff2a;
+}
+.marked.judge .target_annotation_marker {
+  display: block;
+  background-color: #ffe600;
+}
+.marked.backgr .target_annotation_marker{
+  display: block;
+  background-color: #a200ff;
 }
 
 
@@ -714,8 +736,7 @@ button svg{
   align-items: center;
   justify-content: start;
   width: 100%;
-  min-height: 50px;
-  max-height: 200px;
+  height: 200px;
 }
 .comment_section_content{
   text-align: start;

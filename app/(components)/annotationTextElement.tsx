@@ -2,11 +2,21 @@ import React from "react";
 
 const AnnotationTextElement = ({id, i, s, mark, handleClick}: {id: string, i: number, s: string, mark: number, handleClick: any}) => {
     var classList = 'text'
-    if (s.includes('TREF]')){
+    if (s.includes('<tref')){
+        if (s.includes('single')){
+            s = '[TREF]'
+        } else {
+            s = '[GTREF]'
+        }
         classList += ' target'
     }
-    if (s.includes('REF]')) {
+    if (s.includes('<ref')) {
         classList += ' reference'
+        if (s.includes('single')){
+            s = '[REF]'
+        } else {
+            s = '[GREF]'
+        }
     }
     switch(mark){
         case 0:
@@ -24,7 +34,10 @@ const AnnotationTextElement = ({id, i, s, mark, handleClick}: {id: string, i: nu
 
     return(
         <>
-            <span id={id + '_' + i} className={classList} onClick={()=>s.includes('REF]')&&handleClick(i)}>{s}</span>
+            <span id={id + '_' + i} className={classList} onClick={()=>s.includes('REF]')&&handleClick(i)}>
+                {classList.includes('target')&& <div className="target_annotation_marker"/>}
+                {s}
+            </span>
             <span id={id + '_' + i + '_filler'} className="filler"> </span>
         </>
     )
